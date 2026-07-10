@@ -51,7 +51,7 @@ Set up the first Go layer of the project using pure data definitions only. This 
 - Defined handler-facing request and view data structs in `internal/handler`, such as auth forms, post views, comment forms, vote requests, pagination data, flash messages, and request context.
 - Defined repository-facing data containers in `internal/repository`, keeping them separate from HTTP concerns.
 - Defined SQLite row structs in `internal/repository/sqlite` for users, sessions, posts, categories, comments, votes, migrations, and aggregate stats.
-- Added small application/dependency structs in `cmd/forum/main.go` to reserve the future composition shape without starting the runtime application yet.
+- Added small application/dependency structs in `internal/app/app.go` to reserve the future composition shape without mixing definitions into the command entrypoint.
 
 After reviewing the project instructions, the data models were refined to support the required forum behavior:
 
