@@ -36,6 +36,7 @@ type PostWithAuthor struct {
 	Author     PublicUser
 	Categories []Category
 	Stats      PostStats
+	UserVote   VoteValue
 }
 
 type PostStats struct {
@@ -55,11 +56,22 @@ type PostDraft struct {
 type PostFilter struct {
 	AuthorID   UserID
 	CategoryID CategoryID
+	ViewerID   UserID
+	Kind       PostFilterKind
 	Search     string
 	Sort       SortOrder
 	Limit      int
 	Offset     int
 }
+
+type PostFilterKind string
+
+const (
+	PostFilterAll      PostFilterKind = "all"
+	PostFilterCategory PostFilterKind = "category"
+	PostFilterCreated  PostFilterKind = "created"
+	PostFilterLiked    PostFilterKind = "liked"
+)
 
 type SortOrder string
 

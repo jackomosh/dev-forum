@@ -16,12 +16,14 @@ type PostRecord struct {
 	Author     domain.User
 	Categories []domain.Category
 	Stats      domain.PostStats
+	UserVote   domain.VoteValue
 }
 
 type CommentRecord struct {
-	Comment domain.Comment
-	Author  domain.User
-	Stats   domain.CommentStats
+	Comment  domain.Comment
+	Author   domain.User
+	Stats    domain.CommentStats
+	UserVote domain.VoteValue
 }
 
 type PostQuery struct {

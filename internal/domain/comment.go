@@ -22,9 +22,10 @@ type Comment struct {
 }
 
 type CommentWithAuthor struct {
-	Comment Comment
-	Author  PublicUser
-	Stats   CommentStats
+	Comment  Comment
+	Author   PublicUser
+	Stats    CommentStats
+	UserVote VoteValue
 }
 
 type CommentStats struct {
@@ -49,6 +50,7 @@ const (
 type VoteValue int
 
 const (
+	VoteNone    VoteValue = 0
 	VoteDislike VoteValue = -1
 	VoteLike    VoteValue = 1
 )

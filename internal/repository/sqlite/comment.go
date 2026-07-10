@@ -15,4 +15,5 @@ type CommentStatsRow struct {
 	Likes     int
 	Dislikes  int
 	Score     int
+	UserVote  int
 }

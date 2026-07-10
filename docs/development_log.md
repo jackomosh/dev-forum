@@ -35,7 +35,7 @@ Keep entries short but useful. The goal is not to write a diary; the goal is to 
 
 **Date:** 2026-07-10
 
-**Author:** [mumutugi](https://learn.zone01kisumu.ke/git/mumutugi)
+**Author:** [Bramwel Mutugi](https://learn.zone01kisumu.ke/git/mumutugi)
 
 **Branch:** `feature/domain-structs`
 
@@ -52,6 +52,14 @@ Set up the first Go layer of the project using pure data definitions only. This 
 - Defined repository-facing data containers in `internal/repository`, keeping them separate from HTTP concerns.
 - Defined SQLite row structs in `internal/repository/sqlite` for users, sessions, posts, categories, comments, votes, migrations, and aggregate stats.
 - Added small application/dependency structs in `cmd/forum/main.go` to reserve the future composition shape without starting the runtime application yet.
+
+After reviewing the project instructions, the data models were refined to support the required forum behavior:
+
+- Added `PostFilterKind` in `internal/domain/post.go` with `all`, `category`, `created`, and `liked` filter modes.
+- Added `ViewerID` to `PostFilter` so created-post and liked-post filters can be scoped to the logged-in user.
+- Added `VoteNone` to represent users who have not liked or disliked a post or comment.
+- Added `UserVote` to post/comment view models and repository records so public pages can show total likes/dislikes while logged-in users can also see their own vote state.
+- Added `UserVote` fields to SQLite stats rows for posts and comments so repository queries can return aggregate counts and the current user's vote together.
 
 The main design decision was to separate data definitions by project layer:
 

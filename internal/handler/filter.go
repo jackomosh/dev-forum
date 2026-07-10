@@ -4,7 +4,7 @@ import "forum/internal/domain"
 
 type FilterForm struct {
 	CategoryID domain.CategoryID
-	AuthorID   domain.UserID
+	Kind       domain.PostFilterKind
 	Search     string
 	Sort       domain.SortOrder
 	Page       int
