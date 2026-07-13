@@ -90,3 +90,55 @@ The command passed across all current packages. There are no test files yet beca
 - Implement HTTP handlers using the handler request/view structs.
 - Add validation rules for user registration, login, posts, comments, and votes.
 - Add tests once behavior is introduced.
+
+## Day 2 - Repository Layer & SQLite Implementation (Complete)
+
+**Date:** 2026-07-13
+**Author:** [Stanley Thuita](https://learn.zone01kisumu.ke/git/stathuita)
+**Branch:** `feature/sqlite-repository`
+
+### Goal
+Implement the complete repository layer with SQLite as the database backend, providing data persistence for all domain models.
+
+### Implementation
+
+#### Database Schema (schema.sql)
+Created complete SQLite schema with all tables: users, sessions, posts, categories, post_categories, comments, votes. Added indexes for performance and default categories.
+
+#### Repository Interfaces (internal/repository/interfaces.go)
+Defined contracts for all repositories: User, Session, Post, Comment, Category, Vote.
+
+#### SQLite Implementation (internal/repository/sqlite/)
+- **client.go**: Connection pooling with WAL mode
+- **user.go**: CRUD operations with email/username existence checks
+- **session.go**: Session management with expiration cleanup
+- **post.go**: Post CRUD with filtering, sorting, and pagination
+- **comment.go**: Comment CRUD with post association
+- **vote.go**: Vote management with UPSERT pattern and stats aggregation
+- **category.go**: Category management
+
+#### Key Design Decisions
+- **Timestamps**: Store as Unix timestamps (int64) in database, use time.Time in domain models
+- **Foreign Keys**: ON DELETE CASCADE for referential integrity
+- **Votes**: UPSERT pattern (INSERT OR REPLACE) for idempotent operations
+- **Testing**: In-memory database (:memory:) with embedded schema for isolation
+
+### Verification
+
+```sh
+go build ./internal/repository/sqlite
+go test -v ./internal/repository/sqlite
+```
+**Results:**
+
+- All 4 tests passing
+- Build successful with no errors
+- No file I/O in tests (embedded schema)
+
+**Next Steps**
+
+- Implement bcrypt password hashing (Member 2)
+- Create HTTP handlers using repository interfaces (Member 3)
+- Implement cookie-based session management (Member 3)
+- Complete UI templates (Member 4)
+- Finalize Docker containerization (Member 5)
