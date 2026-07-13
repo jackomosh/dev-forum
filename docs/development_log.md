@@ -143,7 +143,7 @@ go test -v ./internal/repository/sqlite
 - Complete UI templates (Member 4)
 - Finalize Docker containerization (Member 5)
 
-## Day 2 - Dynamic UI Templates & Semantics
+## Day 2 - Dynamic UI Templates & Semantics (I don't know which day it is 😬)
 
 ### **Date:** 2026-07-13
 ### **Author:** [Jack Omondi](https://learn.zone01kisumu.ke/git/jacomondi)
@@ -158,11 +158,29 @@ Implement a robust, semantic, and reusable Go template engine structure (`web/te
 - **Authentication Forms (`web/templates/login.html` & `web/templates/register.html`)**: Built native forms for user authentication featuring semantic, accessible `<input>` types matching domain specs.
 - **Data Integration Assumptions**: Ensured all dynamic template hooks (e.g., `.User`, `.Posts`, `.Categories`) directly match the view model definitions introduced on Day 1, allowing seamless synchronization with HTTP controllers.
 
-### Verification (working)
+## Front-End Testing & Preview Guide
+Allow me to give you an overview of the UI
+
+To easily preview changes, test frontend, and review style updates without requiring a database, router, or complex backend logic, a lightweight mock development server has been set up at `cmd/forum/main.go`. 
+
+#### 1. Running the Mock Server
+From your terminal (after cloning the repository [Forum](https://learn.zone01kisumu.ke/git/stathuita/forum) or git pull to get recent updates), navigate to the **project root directory** and run:
+
+```bash
+go run ./cmd/forum
+
+```
+
+#### 1. Opening the server
+You should see these messages from your terminal if everything goes as expected
+- **Date: Time === Front-End Mock Dev Server ===**
+- **Date: Time " Server running at: http://localhost:8080 " make sure to navigate to: [localhost](http://localhost:8080)**
+
+### Verification (still-working)
 - Validate template syntax using Go template parsing logic.
 - Checke HTML markup semantics and structure via raw local file renders.
 - Confirm CSS selectors are cleanly structured, enabling Member 5 to begin immediate styling without structural blocks.
 
-### Next Steps (working)
+### Next Steps (still-working)
 - Hand off dynamic templates to Member 3 for integration with Go HTTP route controllers.
 - Assist Member 5 with mapping specific DOM class hooks in `style.css` and `main.js`.
