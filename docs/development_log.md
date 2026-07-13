@@ -168,7 +168,6 @@ From your terminal (after cloning the repository [Forum](https://learn.zone01kis
 
 ```bash
 go run ./cmd/forum
-
 ```
 
 #### 1. Opening the server
