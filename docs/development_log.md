@@ -142,3 +142,31 @@ go test -v ./internal/repository/sqlite
 - Implement cookie-based session management (Member 3)
 - Complete UI templates (Member 4)
 - Finalize Docker containerization (Member 5)
+
+## Day 3 - Frontend Architecture, Layout System & Interactive Client-Side Engine
+
+**Date:** 2026-07-13
+**Author:** [Jack Omondi](https://learn.zone01kisumu.ke/git/jacomondi)
+**Branch:** `feature/frontend-ui-architecture`
+
+### Goal
+Establish a professional, highly responsive, and modular frontend directory structure utilizing semantic HTML5, modern CSS design tokens, and a clean vanilla JavaScript event engine to handle client-side interactions smoothly without relying on framework dependencies.
+
+### Implementation
+- **Structure Realignment (`web/`)**: Integrated frontend assets directly within the designated `web/static/css/style.css`, `web/static/js/main.js`, and HTML templates under `web/templates/` (`base.html`, `index.html`, `login.html`, `register.html`).
+- **Global Theme & Layout System**:
+  - Implemented CSS Custom Properties (Design Tokens) inside `web/static/css/style.css` for consistent typography, modern color scales (slate theme), clean layout grids, and interactive transitions.
+  - Set up a robust, semantic parent structure in `base.html` that uses standard layout slots for sub-views, reducing styling and HTML redundancy.
+- **Asynchronous Interaction Design**:
+  - Authored a non-blocking UI framework in `web/static/js/main.js` utilizing the Fetch API to dynamically register votes (likes/dislikes) and capture validation states asynchronously.
+- **Constraints & Assumptions**: Adhered strictly to the zero-framework constraint. Built interactive mechanics purely with Native DOM APIs, CSS3 Flex/Grid layouts, and standard Go template interpolation structures.
+
+### Verification
+- Validated CSS and layout responsiveness down to 320px breakpoints using Chrome/Firefox Developer Tools.
+- Audited semantic HTML structure to ensure optimal layout flow and accessibility keyboard focus.
+- Verified that static directory mapping integrates smoothly with standard Go `http.FileServer` routing strategies.
+
+### Next Steps
+- Connect Go handlers in the `internal/handler` package to compile and render templates from `web/templates/`.
+- Dynamicize session status (show/hide active controls with `.auth-only` CSS behaviors based on the session cookie).
+- Set up and fine-tune form input validation patterns inside `register.html` and `login.html`.
