@@ -1,0 +1,38 @@
+{{define "base"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{template "title" .}} - Forum</title>
+    <link rel="stylesheet" href="../static/css/style.css">
+</head>
+<body data-authenticated="{{if .User}}true{{else}}false{{end}}">
+
+    <header class="main-header">
+        <div class="nav-container">
+            <a href="/" class="brand-logo">🏛️ DevForum</a>
+            <nav class="nav-links">
+                {{if .User}}
+                    <span class="user-welcome">Hi, <strong>{{.User.Username}}</strong></span>
+                    <a href="/logout" class="btn btn-secondary">Logout</a>
+                {{else}}
+                    <a href="/login" class="nav-link">Login</a>
+                    <a href="/register" class="btn btn-primary">Sign Up</a>
+                {{end}}
+            </nav>
+        </div>
+    </header>
+
+    <main class="app-layout">
+        {{template "content" .}}
+    </main>
+
+    <footer class="app-footer">
+        <p>&copy; 2026 DevForum. Community Blog.</p>
+    </footer>
+
+    <script src="/static/js/main.js"></script>
+</body>
+</html>
+{{end}}
