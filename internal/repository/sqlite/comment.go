@@ -9,37 +9,16 @@ import (
 	"forum/internal/domain"
 )
 
-type CommentRow struct {
-	ID        int64
-	PostID    int64
-	AuthorID  int64
-	Body      string
-	Status    string
-	CreatedAt string
-	UpdatedAt string
-}
-
-type CommentStatsRow struct {
-	CommentID int64
-	Likes     int
-	Dislikes  int
-	Score     int
-	UserVote  int
-}
-
-// CommentRepository handles comment persistence
 type CommentRepository struct {
 	client *Client
 }
 
-// NewCommentRepository creates a new comment repository
 func NewCommentRepository(client *Client) *CommentRepository {
 	return &CommentRepository{client: client}
 }
 
-// Create adds a new comment
 func (r *CommentRepository) Create(ctx context.Context, comment *domain.Comment) error {
-	now := time.Now().Unix()
+	now := time.Now()
 	query := `
 		INSERT INTO comments (post_id, author_id, body, status, created_at, updated_at)
 		VALUES (?, ?, ?, ?, ?, ?)
@@ -51,8 +30,8 @@ func (r *CommentRepository) Create(ctx context.Context, comment *domain.Comment)
 		comment.AuthorID,
 		comment.Body,
 		comment.Status,
-		now,
-		now,
+		now.Unix(), // Convert to Unix timestamp
+		now.Unix(), // Convert to Unix timestamp
 	).Scan(&comment.ID)
 
 	if err != nil {
@@ -62,7 +41,6 @@ func (r *CommentRepository) Create(ctx context.Context, comment *domain.Comment)
 	return nil
 }
 
-// GetByID retrieves a comment by ID with author info
 func (r *CommentRepository) GetByID(ctx context.Context, id domain.CommentID) (*domain.CommentWithAuthor, error) {
 	query := `
 		SELECT 
@@ -75,6 +53,9 @@ func (r *CommentRepository) GetByID(ctx context.Context, id domain.CommentID) (*
 
 	var comment domain.Comment
 	var author domain.PublicUser
+	var commentCreatedAt int64
+	var commentUpdatedAt int64
+	var authorCreatedAt int64
 
 	err := r.client.db.QueryRowContext(ctx, query, id).Scan(
 		&comment.ID,
@@ -82,12 +63,12 @@ func (r *CommentRepository) GetByID(ctx context.Context, id domain.CommentID) (*
 		&comment.AuthorID,
 		&comment.Body,
 		&comment.Status,
-		&comment.CreatedAt,
-		&comment.UpdatedAt,
+		&commentCreatedAt,
+		&commentUpdatedAt,
 		&author.ID,
 		&author.Username,
 		&author.Role,
-		&author.CreatedAt,
+		&authorCreatedAt,
 	)
 
 	if err == sql.ErrNoRows {
@@ -96,6 +77,10 @@ func (r *CommentRepository) GetByID(ctx context.Context, id domain.CommentID) (*
 	if err != nil {
 		return nil, fmt.Errorf("get comment by id: %w", err)
 	}
+
+	comment.CreatedAt = time.Unix(commentCreatedAt, 0)
+	comment.UpdatedAt = time.Unix(commentUpdatedAt, 0)
+	author.CreatedAt = time.Unix(authorCreatedAt, 0)
 
 	// Get stats
 	stats, err := r.getCommentStats(ctx, id)
@@ -111,7 +96,6 @@ func (r *CommentRepository) GetByID(ctx context.Context, id domain.CommentID) (*
 	}, nil
 }
 
-// GetByPostID retrieves comments for a post with pagination
 func (r *CommentRepository) GetByPostID(ctx context.Context, postID domain.PostID, limit, offset int) ([]domain.CommentWithAuthor, int, error) {
 	// Get total count
 	countQuery := `
@@ -152,6 +136,9 @@ func (r *CommentRepository) GetByPostID(ctx context.Context, postID domain.PostI
 	for rows.Next() {
 		var comment domain.Comment
 		var author domain.PublicUser
+		var commentCreatedAt int64
+		var commentUpdatedAt int64
+		var authorCreatedAt int64
 
 		err := rows.Scan(
 			&comment.ID,
@@ -159,16 +146,20 @@ func (r *CommentRepository) GetByPostID(ctx context.Context, postID domain.PostI
 			&comment.AuthorID,
 			&comment.Body,
 			&comment.Status,
-			&comment.CreatedAt,
-			&comment.UpdatedAt,
+			&commentCreatedAt,
+			&commentUpdatedAt,
 			&author.ID,
 			&author.Username,
 			&author.Role,
-			&author.CreatedAt,
+			&authorCreatedAt,
 		)
 		if err != nil {
 			return nil, 0, fmt.Errorf("scan comment: %w", err)
 		}
+
+		comment.CreatedAt = time.Unix(commentCreatedAt, 0)
+		comment.UpdatedAt = time.Unix(commentUpdatedAt, 0)
+		author.CreatedAt = time.Unix(authorCreatedAt, 0)
 
 		// Get stats for this comment
 		stats, err := r.getCommentStats(ctx, comment.ID)
@@ -187,9 +178,8 @@ func (r *CommentRepository) GetByPostID(ctx context.Context, postID domain.PostI
 	return comments, total, nil
 }
 
-// Update modifies an existing comment
 func (r *CommentRepository) Update(ctx context.Context, comment *domain.Comment) error {
-	comment.UpdatedAt = time.Now().Unix()
+	comment.UpdatedAt = time.Now()
 	query := `
 		UPDATE comments
 		SET body = ?, status = ?, updated_at = ?
@@ -199,7 +189,7 @@ func (r *CommentRepository) Update(ctx context.Context, comment *domain.Comment)
 	result, err := r.client.db.ExecContext(ctx, query,
 		comment.Body,
 		comment.Status,
-		comment.UpdatedAt,
+		comment.UpdatedAt.Unix(), // Convert to Unix timestamp
 		comment.ID,
 	)
 
@@ -219,7 +209,6 @@ func (r *CommentRepository) Update(ctx context.Context, comment *domain.Comment)
 	return nil
 }
 
-// Delete removes a comment
 func (r *CommentRepository) Delete(ctx context.Context, id domain.CommentID) error {
 	query := `DELETE FROM comments WHERE id = ?`
 
@@ -240,7 +229,6 @@ func (r *CommentRepository) Delete(ctx context.Context, id domain.CommentID) err
 	return nil
 }
 
-// getCommentStats retrieves vote statistics for a comment
 func (r *CommentRepository) getCommentStats(ctx context.Context, commentID domain.CommentID) (*domain.CommentStats, error) {
 	query := `
 		SELECT 

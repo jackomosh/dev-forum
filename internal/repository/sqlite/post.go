@@ -14,38 +14,6 @@ type PostRepository struct {
 	client *Client
 }
 
-type PostRow struct {
-	ID        int64
-	AuthorID  int64
-	Title     string
-	Body      string
-	Status    string
-	CreatedAt string
-	UpdatedAt string
-}
-
-type CategoryRow struct {
-	ID          int64
-	Name        string
-	Slug        string
-	Description string
-	CreatedAt   string
-}
-
-type PostCategoryRow struct {
-	PostID     int64
-	CategoryID int64
-}
-
-type PostStatsRow struct {
-	PostID   int64
-	Comments int
-	Likes    int
-	Dislikes int
-	Score    int
-	UserVote int
-}
-
 func NewPostRepository(client *Client) *PostRepository {
 	return &PostRepository{client: client}
 }
@@ -57,7 +25,7 @@ func (r *PostRepository) Create(ctx context.Context, post *domain.Post, category
 	}
 	defer tx.Rollback()
 
-	now := time.Now().Unix()
+	now := time.Now()
 	query := `
 		INSERT INTO posts (author_id, title, body, status, created_at, updated_at)
 		VALUES (?, ?, ?, ?, ?, ?)
@@ -69,10 +37,9 @@ func (r *PostRepository) Create(ctx context.Context, post *domain.Post, category
 		post.Title,
 		post.Body,
 		post.Status,
-		now,
-		now,
+		now.Unix(), // Convert to Unix timestamp
+		now.Unix(), // Convert to Unix timestamp
 	).Scan(&post.ID)
-
 	if err != nil {
 		return fmt.Errorf("create post: %w", err)
 	}
@@ -117,17 +84,21 @@ func (r *PostRepository) GetByID(ctx context.Context, id domain.PostID) (*domain
 
 	var post domain.Post
 	var author domain.PublicUser
+	var postCreatedAt int64
+	var postUpdatedAt int64
+	var authorCreatedAt int64
+
 	err := r.client.db.QueryRowContext(ctx, query, id).Scan(
 		&post.ID,
 		&post.Title,
 		&post.Body,
 		&post.Status,
-		&post.CreatedAt,
-		&post.UpdatedAt,
+		&postCreatedAt,
+		&postUpdatedAt,
 		&author.ID,
 		&author.Username,
 		&author.Role,
-		&author.CreatedAt,
+		&authorCreatedAt,
 	)
 
 	if err == sql.ErrNoRows {
@@ -136,6 +107,10 @@ func (r *PostRepository) GetByID(ctx context.Context, id domain.PostID) (*domain
 	if err != nil {
 		return nil, fmt.Errorf("get post by id: %w", err)
 	}
+
+	post.CreatedAt = time.Unix(postCreatedAt, 0)
+	post.UpdatedAt = time.Unix(postUpdatedAt, 0)
+	author.CreatedAt = time.Unix(authorCreatedAt, 0)
 
 	// Get categories
 	categories, err := r.GetCategoriesByPostID(ctx, id)
@@ -159,7 +134,7 @@ func (r *PostRepository) GetByID(ctx context.Context, id domain.PostID) (*domain
 }
 
 func (r *PostRepository) Update(ctx context.Context, post *domain.Post) error {
-	post.UpdatedAt = time.Now().Unix()
+	post.UpdatedAt = time.Now()
 	query := `
 		UPDATE posts
 		SET title = ?, body = ?, status = ?, updated_at = ?
@@ -170,10 +145,9 @@ func (r *PostRepository) Update(ctx context.Context, post *domain.Post) error {
 		post.Title,
 		post.Body,
 		post.Status,
-		post.UpdatedAt,
+		post.UpdatedAt.Unix(), // Convert to Unix timestamp
 		post.ID,
 	)
-
 	if err != nil {
 		return fmt.Errorf("update post: %w", err)
 	}
@@ -222,7 +196,6 @@ func (r *PostRepository) List(ctx context.Context, filter domain.PostFilter) ([]
 	}
 
 	if filter.ViewerID > 0 && filter.Kind == domain.PostFilterLiked {
-		// Only show posts liked by viewer
 		conditions = append(conditions, `
 			EXISTS (
 				SELECT 1 FROM votes v 
@@ -236,7 +209,6 @@ func (r *PostRepository) List(ctx context.Context, filter domain.PostFilter) ([]
 	}
 
 	if filter.ViewerID > 0 && filter.Kind == domain.PostFilterCreated {
-		// Only show posts created by viewer
 		conditions = append(conditions, "p.author_id = ?")
 		args = append(args, filter.ViewerID)
 	}
@@ -330,18 +302,20 @@ func (r *PostRepository) List(ctx context.Context, filter domain.PostFilter) ([]
 		var p domain.Post
 		var author domain.PublicUser
 		var stats domain.PostStats
+		var pCreatedAt, pUpdatedAt int64
+		var authorCreatedAt int64
 
 		err := rows.Scan(
 			&p.ID,
 			&p.Title,
 			&p.Body,
 			&p.Status,
-			&p.CreatedAt,
-			&p.UpdatedAt,
+			&pCreatedAt,
+			&pUpdatedAt,
 			&author.ID,
 			&author.Username,
 			&author.Role,
-			&author.CreatedAt,
+			&authorCreatedAt,
 			&stats.LikeCount,
 			&stats.DislikeCount,
 			&stats.CommentCount,
@@ -349,6 +323,10 @@ func (r *PostRepository) List(ctx context.Context, filter domain.PostFilter) ([]
 		if err != nil {
 			return nil, 0, 0, fmt.Errorf("scan post: %w", err)
 		}
+
+		p.CreatedAt = time.Unix(pCreatedAt, 0)
+		p.UpdatedAt = time.Unix(pUpdatedAt, 0)
+		author.CreatedAt = time.Unix(authorCreatedAt, 0)
 
 		// Get categories for this post
 		categories, err := r.GetCategoriesByPostID(ctx, p.ID)
@@ -387,16 +365,18 @@ func (r *PostRepository) GetCategoriesByPostID(ctx context.Context, postID domai
 	var categories []domain.Category
 	for rows.Next() {
 		var cat domain.Category
+		var createdAt int64
 		err := rows.Scan(
 			&cat.ID,
 			&cat.Name,
 			&cat.Slug,
 			&cat.Description,
-			&cat.CreatedAt,
+			&createdAt,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("scan category: %w", err)
 		}
+		cat.CreatedAt = time.Unix(createdAt, 0)
 		categories = append(categories, cat)
 	}
 
@@ -419,7 +399,6 @@ func (r *PostRepository) getPostStats(ctx context.Context, postID domain.PostID)
 		&stats.DislikeCount,
 		&stats.CommentCount,
 	)
-
 	if err != nil {
 		return nil, fmt.Errorf("get post stats: %w", err)
 	}

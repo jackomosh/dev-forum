@@ -9,23 +9,6 @@ import (
 	"forum/internal/domain"
 )
 
-type UserRow struct {
-	ID           int64
-	Username     string
-	Email        string
-	PasswordHash string
-	Role         string
-	CreatedAt    string
-	UpdatedAt    string
-}
-
-type SessionRow struct {
-	ID        string
-	UserID    int64
-	ExpiresAt string
-	CreatedAt string
-}
-
 type UserRepository struct {
 	client *Client
 }
@@ -35,7 +18,7 @@ func NewUserRepository(client *Client) *UserRepository {
 }
 
 func (r *UserRepository) Create(ctx context.Context, user *domain.User) error {
-	now := time.Now().Unix()
+	now := time.Now()
 	query := `
 		INSERT INTO users (username, email, password_hash, role, created_at, updated_at)
 		VALUES (?, ?, ?, ?, ?, ?)
@@ -47,8 +30,8 @@ func (r *UserRepository) Create(ctx context.Context, user *domain.User) error {
 		user.Email,
 		user.PasswordHash,
 		user.Role,
-		now,
-		now,
+		now.Unix(), // Convert to Unix timestamp
+		now.Unix(), // Convert to Unix timestamp
 	).Scan(&user.ID)
 
 	if err != nil {
@@ -65,14 +48,17 @@ func (r *UserRepository) GetByID(ctx context.Context, id domain.UserID) (*domain
 	`
 
 	var user domain.User
+	var createdAt int64
+	var updatedAt int64
+
 	err := r.client.db.QueryRowContext(ctx, query, id).Scan(
 		&user.ID,
 		&user.Username,
 		&user.Email,
 		&user.PasswordHash,
 		&user.Role,
-		&user.CreatedAt,
-		&user.UpdatedAt,
+		&createdAt,
+		&updatedAt,
 	)
 
 	if err == sql.ErrNoRows {
@@ -81,6 +67,9 @@ func (r *UserRepository) GetByID(ctx context.Context, id domain.UserID) (*domain
 	if err != nil {
 		return nil, fmt.Errorf("get user by id: %w", err)
 	}
+
+	user.CreatedAt = time.Unix(createdAt, 0)
+	user.UpdatedAt = time.Unix(updatedAt, 0)
 
 	return &user, nil
 }
@@ -92,14 +81,17 @@ func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*domain.
 	`
 
 	var user domain.User
+	var createdAt int64
+	var updatedAt int64
+
 	err := r.client.db.QueryRowContext(ctx, query, email).Scan(
 		&user.ID,
 		&user.Username,
 		&user.Email,
 		&user.PasswordHash,
 		&user.Role,
-		&user.CreatedAt,
-		&user.UpdatedAt,
+		&createdAt,
+		&updatedAt,
 	)
 
 	if err == sql.ErrNoRows {
@@ -108,6 +100,9 @@ func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*domain.
 	if err != nil {
 		return nil, fmt.Errorf("get user by email: %w", err)
 	}
+
+	user.CreatedAt = time.Unix(createdAt, 0)
+	user.UpdatedAt = time.Unix(updatedAt, 0)
 
 	return &user, nil
 }
@@ -119,14 +114,17 @@ func (r *UserRepository) GetByUsername(ctx context.Context, username string) (*d
 	`
 
 	var user domain.User
+	var createdAt int64
+	var updatedAt int64
+
 	err := r.client.db.QueryRowContext(ctx, query, username).Scan(
 		&user.ID,
 		&user.Username,
 		&user.Email,
 		&user.PasswordHash,
 		&user.Role,
-		&user.CreatedAt,
-		&user.UpdatedAt,
+		&createdAt,
+		&updatedAt,
 	)
 
 	if err == sql.ErrNoRows {
@@ -136,11 +134,14 @@ func (r *UserRepository) GetByUsername(ctx context.Context, username string) (*d
 		return nil, fmt.Errorf("get user by username: %w", err)
 	}
 
+	user.CreatedAt = time.Unix(createdAt, 0)
+	user.UpdatedAt = time.Unix(updatedAt, 0)
+
 	return &user, nil
 }
 
 func (r *UserRepository) Update(ctx context.Context, user *domain.User) error {
-	user.UpdatedAt = time.Now().Unix()
+	user.UpdatedAt = time.Now()
 	query := `
 		UPDATE users
 		SET username = ?, email = ?, password_hash = ?, role = ?, updated_at = ?
@@ -152,7 +153,7 @@ func (r *UserRepository) Update(ctx context.Context, user *domain.User) error {
 		user.Email,
 		user.PasswordHash,
 		user.Role,
-		user.UpdatedAt,
+		user.UpdatedAt.Unix(), // Convert to Unix timestamp
 		user.ID,
 	)
 
