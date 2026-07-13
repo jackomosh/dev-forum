@@ -143,30 +143,26 @@ go test -v ./internal/repository/sqlite
 - Complete UI templates (Member 4)
 - Finalize Docker containerization (Member 5)
 
-## Day 3 - Frontend Architecture, Layout System & Interactive Client-Side Engine
+## Day 2 - Dynamic UI Templates & Semantics
 
-**Date:** 2026-07-13
-**Author:** [Jack Omondi](https://learn.zone01kisumu.ke/git/jacomondi)
-**Branch:** `feature/frontend-ui-architecture`
+### **Date:** 2026-07-13
+### **Author:** [Jack Omondi](https://learn.zone01kisumu.ke/git/jacomondi)
+### **Branch:** `feature/ui-templates`
 
 ### Goal
-Establish a professional, highly responsive, and modular frontend directory structure utilizing semantic HTML5, modern CSS design tokens, and a clean vanilla JavaScript event engine to handle client-side interactions smoothly without relying on framework dependencies.
+Implement a robust, semantic, and reusable Go template engine structure (`web/templates/`) to serve as the unified presentation layer. This layout provides clear dynamic data slots (`{{block}}` / `{{define}}`) for Member 3's handlers and provides predictable class hooks for Member 5's styling.
 
 ### Implementation
-- **Structure Realignment (`web/`)**: Integrated frontend assets directly within the designated `web/static/css/style.css`, `web/static/js/main.js`, and HTML templates under `web/templates/` (`base.html`, `index.html`, `login.html`, `register.html`).
-- **Global Theme & Layout System**:
-  - Implemented CSS Custom Properties (Design Tokens) inside `web/static/css/style.css` for consistent typography, modern color scales (slate theme), clean layout grids, and interactive transitions.
-  - Set up a robust, semantic parent structure in `base.html` that uses standard layout slots for sub-views, reducing styling and HTML redundancy.
-- **Asynchronous Interaction Design**:
-  - Authored a non-blocking UI framework in `web/static/js/main.js` utilizing the Fetch API to dynamically register votes (likes/dislikes) and capture validation states asynchronously.
-- **Constraints & Assumptions**: Adhered strictly to the zero-framework constraint. Built interactive mechanics purely with Native DOM APIs, CSS3 Flex/Grid layouts, and standard Go template interpolation structures.
+- **Layout Structuring (`web/templates/base.html`)**: Created the master layout page establishing the HTML5 boilerplate, linking static assets, and defining standard dynamic entry blocks (`{{block "content" .}}`).
+- **Dashboard Development (`web/templates/index.html`)**: Implemented the main discussion feed displaying dynamic posts, categories, and post-filtering components while checking user authentication context globally.
+- **Authentication Forms (`web/templates/login.html` & `web/templates/register.html`)**: Built native forms for user authentication featuring semantic, accessible `<input>` types matching domain specs.
+- **Data Integration Assumptions**: Ensured all dynamic template hooks (e.g., `.User`, `.Posts`, `.Categories`) directly match the view model definitions introduced on Day 1, allowing seamless synchronization with HTTP controllers.
 
-### Verification
-- Validated CSS and layout responsiveness down to 320px breakpoints using Chrome/Firefox Developer Tools.
-- Audited semantic HTML structure to ensure optimal layout flow and accessibility keyboard focus.
-- Verified that static directory mapping integrates smoothly with standard Go `http.FileServer` routing strategies.
+### Verification (working)
+- Validate template syntax using Go template parsing logic.
+- Checke HTML markup semantics and structure via raw local file renders.
+- Confirm CSS selectors are cleanly structured, enabling Member 5 to begin immediate styling without structural blocks.
 
-### Next Steps
-- Connect Go handlers in the `internal/handler` package to compile and render templates from `web/templates/`.
-- Dynamicize session status (show/hide active controls with `.auth-only` CSS behaviors based on the session cookie).
-- Set up and fine-tune form input validation patterns inside `register.html` and `login.html`.
+### Next Steps (working)
+- Hand off dynamic templates to Member 3 for integration with Go HTTP route controllers.
+- Assist Member 5 with mapping specific DOM class hooks in `style.css` and `main.js`.
