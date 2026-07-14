@@ -947,3 +947,528 @@ body {
     padding: 30px 20px;
   }
 }
+
+/* ==========================================
+   DASHBOARD 3-COLUMN GRID SYSTEM
+   ========================================== */
+.dashboard-grid-wrapper {
+  display: grid;
+  grid-template-columns: 240px 1fr 280px;
+  gap: 2rem;
+  max-width: 1400px;
+  margin: 2rem auto;
+  padding: 0 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .dashboard-grid-wrapper {
+    grid-template-columns: 220px 1fr;
+  }
+  .dashboard-right-panel {
+    display: none; /* Hide right panel on tablets */
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-grid-wrapper {
+    grid-template-columns: 1fr;
+  }
+  .dashboard-sidebar {
+    display: none; /* Mobile switches to main vertical drawer */
+  }
+}
+
+/* Sidebar Styling */
+.dashboard-sidebar {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.sidebar-block {
+  margin-bottom: 2rem;
+}
+
+.sidebar-block:last-child {
+  margin-bottom: 0;
+}
+
+.sidebar-heading {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  margin-bottom: 1rem;
+}
+
+.filter-list, .category-list, .active-users-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.filter-item, .category-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  color: #1e293b;
+  text-decoration: none;
+  font-weight: 500;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  font-size: 0.95rem;
+}
+
+.filter-item:hover, .category-item:hover, .filter-item.active, .category-item.active {
+  background: #f1f5f9;
+  color: #22c55e; /* Theme Green highlight */
+}
+
+/* Fallback Post Images CSS Rules (So they display fine if assets are empty) */
+.featured-img-container, .card-img-container, .split-image-container {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.featured-img-container::before, .card-img-container::before {
+  content: 'DevForum Technical Visual';
+  font-family: 'Space Grotesk', sans-serif;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 1rem;
+  font-weight: 500;
+  position: absolute;
+}
+
+/* Set dynamic fallback images if the file system path fails */
+.editorial-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.85;
+  transition: opacity 0.3s ease;
+}
+
+/* Cards & Actions */
+.create-post-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.post-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 2rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.badge-category {
+  background: #e8f5e9;
+  color: #2e7d32;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-weight: 600;
+}
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.action-btn:hover, .voted-active {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.voted-active.like-btn {
+  background: #e8f5e9;
+  color: #2e7d32;
+  border-color: #a5d6a7;
+}
+
+.voted-active.dislike-btn {
+  background: #ffebee;
+  color: #c62828;
+  border-color: #ef9a9a;
+}
+
+/* Collapsible Comments styling */
+.active-collapsed {
+  display: block;
+}
+
+/* ==========================================
+   CONTACT PAGE LAYOUT
+   ========================================== */
+.contact-page-container {
+  max-width: 1200px;
+  margin: 3rem auto;
+  padding: 0 1.5rem;
+}
+
+/* Split layout grid */
+.contact-split-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 3rem;
+  align-items: stretch;
+  margin-bottom: 4rem;
+}
+
+@media (max-width: 900px) {
+  .contact-split-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+}
+
+/* Left Column Form Card */
+.contact-form-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 2.5rem;
+}
+
+.contact-form-heading {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 0.5rem;
+}
+
+.contact-form-subtext {
+  color: #64748b;
+  font-size: 1rem;
+  margin-bottom: 2rem;
+  line-height: 1.5;
+}
+
+/* Right Column Side Banner */
+.contact-details-banner {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  color: #ffffff;
+  border-radius: 12px;
+  padding: 3rem 2.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.banner-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.75rem;
+  font-weight: 600;
+  margin: 0.5rem 0 1rem;
+}
+
+.banner-description {
+  color: #cbd5e1;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-bottom: 2.5rem;
+}
+
+/* Contact detail row elements */
+.info-details-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.info-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.info-icon {
+  font-size: 1.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+}
+
+.info-text h4 {
+  font-size: 1rem;
+  margin: 0 0 0.25rem 0;
+  font-family: 'Space Grotesk', sans-serif;
+  color: #ffffff;
+}
+
+.info-text p, .info-text p a {
+  font-size: 0.9rem;
+  margin: 0;
+  color: #94a3b8;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.info-text p a:hover {
+  color: #22c55e; /* Green accent color */
+}
+
+.banner-footer-note {
+  margin-top: 3rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 1.5rem;
+  font-size: 0.85rem;
+  color: #94a3b8;
+}
+
+/* Map Section Styles */
+.map-embed-section {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 2.5rem;
+}
+
+.map-heading {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 1.5rem;
+}
+
+.map-iframe-wrapper {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 8px;
+  box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+}
+
+.map-iframe-wrapper iframe {
+  display: block;
+}
+
+/* ==========================================
+   MOBILE RESPONSIVE CONTACT PAGE
+   ========================================== */
+.contact-page-container {
+  max-width: 1200px;
+  margin: 3rem auto;
+  padding: 0 1.5rem;
+}
+
+/* Base grid layout for desktop */
+.contact-split-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 3rem;
+  align-items: stretch;
+  margin-bottom: 4rem;
+}
+
+/* Left Column Form Card */
+.contact-form-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 2.5rem;
+}
+
+.contact-form-heading {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 0.5rem;
+}
+
+.contact-form-subtext {
+  color: #64748b;
+  font-size: 1rem;
+  margin-bottom: 2rem;
+  line-height: 1.5;
+}
+
+/* Responsive Two-Column form inputs (First name & Last name) */
+.form-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+/* Right Column Side Banner */
+.contact-details-banner {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  color: #ffffff;
+  border-radius: 12px;
+  padding: 3rem 2.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.banner-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.75rem;
+  font-weight: 600;
+  margin: 0.5rem 0 1rem;
+}
+
+.banner-description {
+  color: #cbd5e1;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-bottom: 2.5rem;
+}
+
+/* Contact detail row elements */
+.info-details-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.info-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.info-icon {
+  font-size: 1.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  flex-shrink: 0; /* Prevents icon from squeezing on narrow viewports */
+}
+
+.info-text h4 {
+  font-size: 1rem;
+  margin: 0 0 0.25rem 0;
+  font-family: 'Space Grotesk', sans-serif;
+  color: #ffffff;
+}
+
+.info-text p, .info-text p a {
+  font-size: 0.9rem;
+  margin: 0;
+  color: #94a3b8;
+  text-decoration: none;
+  transition: color 0.2s;
+  word-break: break-all; /* Prevents long emails from breaking layout boundaries */
+}
+
+.info-text p a:hover {
+  color: #22c55e;
+}
+
+.banner-footer-note {
+  margin-top: 3rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 1.5rem;
+  font-size: 0.85rem;
+  color: #94a3b8;
+}
+
+/* Map Section Styles */
+.map-embed-section {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 2.5rem;
+}
+
+.map-heading {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 1.5rem;
+}
+
+.map-iframe-wrapper {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 8px;
+  box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+}
+
+.map-iframe-wrapper iframe {
+  display: block;
+}
+
+/* ==========================================
+   MEDIA QUERIES (RESPONSIVE ADAPTATIONS)
+   ========================================== */
+
+/* Tablet & Smaller Screens */
+@media (max-width: 900px) {
+  .contact-page-container {
+    margin: 1.5rem auto;
+  }
+
+  .contact-split-grid {
+    grid-template-columns: 1fr; /* Stacks the form and banner vertically */
+    gap: 2rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .contact-form-card, 
+  .contact-details-banner,
+  .map-embed-section {
+    padding: 2rem; /* Reduces padding slightly for more screen real estate */
+  }
+}
+
+/* Mobile Devices */
+@media (max-width: 550px) {
+  .contact-page-container {
+    padding: 0 1rem;
+  }
+
+  .contact-form-card, 
+  .contact-details-banner,
+  .map-embed-section {
+    padding: 1.5rem 1rem;
+    border-radius: 8px;
+  }
+
+  .contact-form-heading {
+    font-size: 1.5rem;
+  }
+
+  .banner-title {
+    font-size: 1.4rem;
+  }
+
+  /*
