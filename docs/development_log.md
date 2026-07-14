@@ -183,3 +183,51 @@ You should see these messages from your terminal if everything goes as expected
 ### Next Steps (still-working)
 - Hand off dynamic templates to Member 3 for integration with Go HTTP route controllers.
 - Assist Member 5 with mapping specific DOM class hooks in `style.css` and `main.js`.
+
+## Day 3 - Backend Entrypoint Refactor & Repository Wiring
+
+**Date:** 2026-07-14
+
+**Author:** Codex, guided by [Bramwel Mutugi](https://learn.zone01kisumu.ke/git/mumutugi)
+
+**Branch:** `main`
+
+### Goal
+Restore `cmd/forum/main.go` to a minimal application entrypoint and move backend behavior into the predefined `internal/` modules, using the existing domain, handler, repository, and SQLite structures instead of redeclared mock structs.
+
+### Implementation
+- Reduced `cmd/forum/main.go` to only call application startup through `internal/app`.
+- Moved application composition into `internal/app/app.go`, including config loading, SQLite client creation, schema application, repository construction, static file routing, handler registration, and server startup.
+- Kept runtime defaults inside the existing `internal/config/config.go` file to preserve the original package structure.
+- Added real HTTP handler wiring in `internal/handler/server.go`, with template rendering in `internal/handler/renderer.go` and password helper logic in `internal/handler/password.go`.
+- Updated handler view data in `internal/handler/post.go`, `internal/handler/auth.go`, and `internal/handler/comment.go` so templates receive domain-backed data rather than mock structs.
+- Added missing SQLite implementations for predefined repository contracts:
+  - `internal/repository/sqlite/category.go` implements category persistence.
+  - `internal/repository/sqlite/session.go` implements session persistence.
+  - `internal/repository/sqlite/store.go` aggregates SQLite repositories behind the existing `repository.Repository` interface.
+- Updated existing SQLite repositories to include compile-time interface checks.
+- Fixed `PostRepository.List` so the SQLite implementation matches the existing interface and returns user vote state through `domain.VoteValue`.
+- Updated `web/templates/base.html` and `web/templates/dashboard.html` to use `.CurrentUser`, `domain.PostWithAuthor`, `domain.CommentWithAuthor`, and `domain.Category` data.
+- Adjusted SQLite client settings in `internal/repository/sqlite/client.go` with `_busy_timeout=5000`, foreign-key DSN options, and a single open connection to reduce local SQLite lock contention.
+
+### Verification
+- Formatted changed Go files with `gofmt`.
+- Ran the full test suite:
+
+```sh
+env GOCACHE=/tmp/go-build-cache GOMODCACHE=/tmp/go-mod-cache go test -v ./...
+```
+
+- Smoke-tested the server on an alternate port with `FORUM_PORT=18080` because port `8080` was already occupied.
+- Confirmed `/`, `/dashboard`, `/login`, and `/register` returned `200`.
+- Confirmed protected post/comment actions redirect unauthenticated users to `/login`.
+
+### Next Steps
+- Add HTTP routes and forms or API handlers for post/comment voting.
+- Add CSRF protection for all state-changing forms.
+- Strengthen validation for registration, login, posts, comments, and categories.
+- Add repository tests for posts, comments, categories, sessions, and votes.
+- Add graceful shutdown for the HTTP server.
+- Replace raw schema application on startup with versioned migrations.
+- Cache parsed templates instead of reparsing templates on each request.
+- Ensure developers close any external `sqlite3 forum.db` shell before running the app to avoid SQLite locks.
