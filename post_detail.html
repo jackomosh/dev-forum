@@ -1,0 +1,487 @@
+{{define "title"}}{{.Post.Title}} — DevForum{{end}}
+
+{{define "content"}}
+<div class="post-detail-wrapper">
+  
+  <!-- Back Button -->
+  <div class="back-nav">
+    <a href="/" class="back-link">← Back to Feed</a>
+  </div>
+
+  <!-- Single Post Card -->
+  <article class="post-detail-card">
+    
+    <!-- Post Header -->
+    <div class="post-detail-header">
+      <div class="post-author-meta">
+        <div class="author-avatar">{{slice .Post.Author.Username 0 1 | html}}</div>
+        <div>
+          <span class="post-author-name">@{{.Post.Author.Username}}</span>
+          <span class="post-timestamp">{{.Post.Post.CreatedAt.Format "Jan 2, 2006 15:04"}}</span>
+        </div>
+      </div>
+      <div class="post-badges">
+        {{range .Post.Categories}}
+          <span class="badge badge-category">{{.Name}}</span>
+        {{end}}
+      </div>
+    </div>
+
+    <!-- Post Body -->
+    <div class="post-detail-body">
+      <h1 class="post-detail-title">{{.Post.Post.Title}}</h1>
+      <div class="post-detail-content">
+        <p>{{.Post.Post.Body}}</p>
+      </div>
+    </div>
+
+    <!-- Post Actions -->
+    <div class="post-detail-actions">
+      <div class="action-buttons-group">
+        <button class="action-btn vote-btn like-btn {{if eq .Post.UserVote 1}}voted-active{{end}}" 
+                onclick="handleVote({{.Post.Post.ID}}, 'like')">
+          <span class="action-icon">👍</span>
+          <span class="count" id="likes-{{.Post.Post.ID}}">{{.Post.Stats.LikeCount}}</span>
+        </button>
+
+        <button class="action-btn vote-btn dislike-btn {{if eq .Post.UserVote -1}}voted-active{{end}}" 
+                onclick="handleVote({{.Post.Post.ID}}, 'dislike')">
+          <span class="action-icon">👎</span>
+          <span class="count" id="dislikes-{{.Post.Post.ID}}">{{.Post.Stats.DislikeCount}}</span>
+        </button>
+
+        <span class="action-btn comment-count-static">
+          <span class="action-icon">💬</span>
+          <span class="count">{{len .Comments}}</span> Comments
+        </span>
+      </div>
+    </div>
+  </article>
+
+  <!-- Comments Section -->
+  <section class="comments-section-full">
+    <div class="comments-header">
+      <h3>Discussion Thread</h3>
+      <span class="comment-count-badge">{{len .Comments}} comments</span>
+    </div>
+
+    <!-- Comment Form -->
+    {{if .CurrentUser}}
+    <form class="comment-form-full" action="/comment/create" method="POST">
+      <input type="hidden" name="post_id" value="{{.Post.Post.ID}}">
+      <div class="comment-input-group">
+        <div class="comment-author-avatar-small">
+          {{slice .CurrentUser.Username 0 1 | html}}
+        </div>
+        <input type="text" name="content" placeholder="Write your comment..." required class="comment-input-field-full">
+        <button type="submit" class="btn-primary-submit">Post</button>
+      </div>
+    </form>
+    {{else}}
+    <div class="login-prompt-box">
+      <p><a href="/login">Login</a> to join the discussion</p>
+    </div>
+    {{end}}
+
+    <!-- Comments List -->
+    <div class="comments-list-full">
+      {{if .Comments}}
+        {{range .Comments}}
+          <div class="comment-item-full">
+            <div class="comment-author-avatar">{{slice .Author.Username 0 1 | html}}</div>
+            <div class="comment-content-full">
+              <div class="comment-meta-full">
+                <span class="comment-author">@{{.Author.Username}}</span>
+                <span class="comment-time">{{.Comment.CreatedAt.Format "Jan 2, 2006 15:04"}}</span>
+              </div>
+              <p class="comment-text-full">{{.Comment.Body}}</p>
+            </div>
+          </div>
+        {{end}}
+      {{else}}
+        <div class="empty-comments-state">
+          <p>No comments yet. Start the conversation!</p>
+        </div>
+      {{end}}
+    </div>
+  </section>
+</div>
+
+<!-- Vote JavaScript -->
+<script>
+function handleVote(postID, voteType) {
+    fetch('/vote', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            post_id: postID,
+            vote_type: voteType
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update counts
+            document.getElementById('likes-' + postID).textContent = data.likes;
+            document.getElementById('dislikes-' + postID).textContent = data.dislikes;
+            
+            // Update button states
+            const likeBtn = document.querySelector('.like-btn');
+            const dislikeBtn = document.querySelector('.dislike-btn');
+            
+            likeBtn.classList.remove('voted-active');
+            dislikeBtn.classList.remove('voted-active');
+            
+            if (data.user_vote === 'like') {
+                likeBtn.classList.add('voted-active');
+            } else if (data.user_vote === 'dislike') {
+                dislikeBtn.classList.add('voted-active');
+            }
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
+</script>
+
+<style>
+/* Single Post Detail Styles */
+.post-detail-wrapper {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
+.back-nav {
+    margin-bottom: 1.5rem;
+}
+
+.back-link {
+    color: #6c757d;
+    text-decoration: none;
+    font-size: 0.95rem;
+}
+
+.back-link:hover {
+    color: #495057;
+}
+
+.post-detail-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    margin-bottom: 2rem;
+}
+
+.post-detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #eee;
+}
+
+.post-author-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.author-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #6c63ff;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.post-author-name {
+    font-weight: 600;
+    color: #333;
+}
+
+.post-timestamp {
+    font-size: 0.85rem;
+    color: #999;
+    display: block;
+}
+
+.post-badges {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.badge-category {
+    background: #f0f0f0;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    color: #555;
+}
+
+.post-detail-body {
+    margin: 1.5rem 0;
+}
+
+.post-detail-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin: 0 0 1rem 0;
+}
+
+.post-detail-content {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: #333;
+    white-space: pre-wrap;
+}
+
+.post-detail-actions {
+    padding-top: 1.5rem;
+    border-top: 1px solid #eee;
+}
+
+.action-buttons-group {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.action-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background: #f8f9fa;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.95rem;
+}
+
+.action-btn:hover {
+    background: #e9ecef;
+}
+
+.vote-btn.voted-active {
+    background: #6c63ff;
+    color: white;
+    border-color: #6c63ff;
+}
+
+.vote-btn.voted-active:hover {
+    background: #5a52d5;
+}
+
+.comment-count-static {
+    cursor: default;
+}
+
+.comments-section-full {
+    background: #fff;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.comments-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.comments-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: #1a1a2e;
+}
+
+.comment-count-badge {
+    background: #f0f0f0;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    color: #555;
+}
+
+.comment-form-full {
+    margin-bottom: 2rem;
+}
+
+.comment-input-group {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+.comment-author-avatar-small {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #6c63ff;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+}
+
+.comment-input-field-full {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-family: inherit;
+}
+
+.comment-input-field-full:focus {
+    outline: none;
+    border-color: #6c63ff;
+}
+
+.btn-primary-submit {
+    padding: 0.75rem 1.5rem;
+    background: #6c63ff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-primary-submit:hover {
+    background: #5a52d5;
+}
+
+.login-prompt-box {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.login-prompt-box a {
+    color: #6c63ff;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.comments-list-full {
+    margin-top: 1.5rem;
+}
+
+.comment-item-full {
+    display: flex;
+    gap: 0.75rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.comment-item-full:last-child {
+    border-bottom: none;
+}
+
+.comment-author-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #6c63ff;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+}
+
+.comment-content-full {
+    flex: 1;
+}
+
+.comment-meta-full {
+    margin-bottom: 0.25rem;
+}
+
+.comment-author {
+    font-weight: 600;
+    color: #333;
+}
+
+.comment-time {
+    font-size: 0.8rem;
+    color: #999;
+    margin-left: 0.75rem;
+}
+
+.comment-text-full {
+    margin: 0.25rem 0 0 0;
+    color: #444;
+    line-height: 1.6;
+}
+
+.empty-comments-state {
+    text-align: center;
+    color: #999;
+    padding: 2rem 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .post-detail-wrapper {
+        padding: 1rem;
+    }
+    
+    .post-detail-card {
+        padding: 1rem;
+    }
+    
+    .post-detail-title {
+        font-size: 1.5rem;
+    }
+    
+    .post-detail-header {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .post-badges {
+        margin-top: 0.5rem;
+    }
+    
+    .action-buttons-group {
+        flex-wrap: wrap;
+    }
+    
+    .comment-input-group {
+        flex-wrap: wrap;
+    }
+    
+    .comment-input-field-full {
+        width: 100%;
+        order: 3;
+    }
+    
+    .btn-primary-submit {
+        width: 100%;
+        order: 4;
+    }
+}
+</style>
+{{end}}
