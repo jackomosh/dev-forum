@@ -13,7 +13,7 @@
   
   <link rel="stylesheet" href="/static/css/style.css">
 </head>
-<body data-authenticated="{{if .User}}true{{else}}false{{end}}">
+<body data-authenticated="{{if .CurrentUser}}true{{else}}false{{end}}">
 
   <div class="site-wrapper">
 
@@ -34,9 +34,9 @@
         <div class="nav-segment spacer-segment"></div>
 
         <div class="nav-segment auth-segment">
-          {{if .User}}
+          {{if .CurrentUser}}
             <a href="/posts?filter=created" class="auth-item">My Activity</a>
-            <a href="/logout" class="auth-item logout-btn">Logout ({{.User.Username}})</a>
+            <a href="/logout" class="auth-item logout-btn">Logout ({{.CurrentUser.Username}})</a>
           {{else}}
             <a href="/login" class="auth-item">Login</a>
             <a href="/register" class="auth-item highlight-auth">Sign Up</a>
@@ -76,9 +76,9 @@
           <a href="/" class="mobile-link">My Blog</a>
           <a href="/contact" class="mobile-link">Contact</a>
           <hr class="mobile-divider">
-          {{if .User}}
+          {{if .CurrentUser}}
             <a href="/posts?filter=created" class="mobile-link">My Activity</a>
-            <a href="/logout" class="mobile-link mobile-logout">Logout ({{.User.Username}})</a>
+            <a href="/logout" class="mobile-link mobile-logout">Logout ({{.CurrentUser.Username}})</a>
           {{else}}
             <a href="/login" class="mobile-link">Login</a>
             <a href="/register" class="mobile-link mobile-highlight-auth">Sign Up</a>

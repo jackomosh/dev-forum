@@ -44,20 +44,24 @@ func (m *Middleware) RequireAuth(next http.HandlerFunc) http.HandlerFunc {
 				MaxAge: -1,
 			})
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
 		}
 
 		// Store user in request context
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
 		ctx := context.WithValue(r.Context(), UserContextKey, user)
 		r = r.WithContext(ctx)
 
 		// Call next handler
 		next(w, r)
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
 	}
 }
 
 // OptionalAuth checks auth but doesn't require it
 func (m *Middleware) OptionalAuth(next http.HandlerFunc) http.HandlerFunc {
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Get session token from cookie
 		cookie, err := r.Cookie("session_token")

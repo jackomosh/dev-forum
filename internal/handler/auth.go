@@ -10,6 +10,12 @@ import (
 	"forum/internal/repository"
 )
 
+type RegisterRequest struct {
+	Username string
+	Email    string
+	Password string
+}
+
 // AuthHandler handles authentication HTTP requests
 type AuthHandler struct {
 	userRepo    repository.UserRepository
@@ -41,6 +47,11 @@ type AuthPageData struct {
 	Email       string
 	IsLoggedIn  bool
 	CurrentUser *domain.User
+}
+
+type AuthViewData struct {
+	BaseViewData
+	Form RegisterRequest
 }
 
 // HandleRegisterPage displays the registration form

@@ -12,7 +12,7 @@
             <span class="icon">💬</span> All Feed
           </a>
         </li>
-        {{if .User}}
+        {{if .CurrentUser}}
         <li>
           <a href="/dashboard?filter=created" class="filter-item {{if eq .ActiveFilter "created"}}active{{end}}">
             <span class="icon">✏️</span> My Posts
@@ -44,13 +44,13 @@
 
   <main class="dashboard-feed-area">
 
-    {{if .User}}
+    {{if .CurrentUser}}
     <div class="create-post-card">
       <div class="card-title-row">
         <div class="user-avatar-small">
-          <span>{{slice .User.Username 0 1 | html}}</span>
+          <span>{{slice .CurrentUser.Username 0 1 | html}}</span>
         </div>
-        <span class="prompt-text">What's on your technical mind, @{{.User.Username}}?</span>
+        <span class="prompt-text">What's on your technical mind, @{{.CurrentUser.Username}}?</span>
       </div>
       
       <form class="quick-post-form" action="/post/create" method="POST">
@@ -85,61 +85,61 @@
         </div>
       {{else}}
         {{range .Posts}}
-          <article class="post-card" id="post-{{.ID}}">
+          <article class="post-card" id="post-{{.Post.Post.ID}}">
             
             <div class="post-card-header">
               <div class="post-author-meta">
-                <div class="author-avatar">{{slice .AuthorName 0 1 | html}}</div>
+                <div class="author-avatar">{{slice .Post.Author.Username 0 1 | html}}</div>
                 <div>
-                  <span class="post-author-name">@{{.AuthorName}}</span>
-                  <span class="post-timestamp">{{.CreatedAt}}</span>
+                  <span class="post-author-name">@{{.Post.Author.Username}}</span>
+                  <span class="post-timestamp">{{.Post.Post.CreatedAt.Format "Jan 2, 2006 15:04"}}</span>
                 </div>
               </div>
               <div class="post-badges">
-                {{range .Categories}}
-                  <span class="badge badge-category">{{.}}</span>
+                {{range .Post.Categories}}
+                  <span class="badge badge-category">{{.Name}}</span>
                 {{end}}
               </div>
             </div>
 
             <div class="post-card-body">
-              <h2 class="post-title">{{.Title}}</h2>
-              <p class="post-text">{{.Body}}</p>
+              <h2 class="post-title">{{.Post.Post.Title}}</h2>
+              <p class="post-text">{{.Post.Post.Body}}</p>
             </div>
 
             <div class="post-card-actions">
               <div class="action-buttons-group">
-                <button class="action-btn vote-btn like-btn {{if eq .UserVoted 1}}voted-active{{end}}" aria-label="Like Post">
+                <button class="action-btn vote-btn like-btn {{if eq .Post.UserVote 1}}voted-active{{end}}" aria-label="Like Post">
                   <span class="action-icon">👍</span>
-                  <span class="count">{{.Likes}}</span>
+                  <span class="count">{{.Post.Stats.LikeCount}}</span>
                 </button>
 
-                <button class="action-btn vote-btn dislike-btn {{if eq .UserVoted -1}}voted-active{{end}}" aria-label="Dislike Post">
+                <button class="action-btn vote-btn dislike-btn {{if eq .Post.UserVote -1}}voted-active{{end}}" aria-label="Dislike Post">
                   <span class="action-icon">👎</span>
-                  <span class="count">{{.Dislikes}}</span>
+                  <span class="count">{{.Post.Stats.DislikeCount}}</span>
                 </button>
 
-                <button class="action-btn comment-toggle-btn" onclick="document.getElementById('comments-container-{{.ID}}').classList.toggle('active-collapsed')">
+                <button class="action-btn comment-toggle-btn" onclick="document.getElementById('comments-container-{{.Post.Post.ID}}').classList.toggle('active-collapsed')">
                   <span class="action-icon">💬</span>
                   <span class="count">{{if .Comments}}{{len .Comments}}{{else}}0{{end}}</span> Comments
                 </button>
               </div>
             </div>
 
-            <div class="comments-section-container active-collapsed" id="comments-container-{{.ID}}">
+            <div class="comments-section-container active-collapsed" id="comments-container-{{.Post.Post.ID}}">
               <div class="comments-divider"></div>
               
               <div class="comments-list">
                 {{if .Comments}}
                   {{range .Comments}}
                     <div class="comment-item">
-                      <div class="comment-author-avatar">{{slice .Author 0 1 | html}}</div>
+                      <div class="comment-author-avatar">{{slice .Author.Username 0 1 | html}}</div>
                       <div class="comment-content">
                         <div class="comment-meta">
-                          <span class="comment-author">@{{.Author}}</span>
-                          <span class="comment-time">{{.CreatedAt}}</span>
+                          <span class="comment-author">@{{.Author.Username}}</span>
+                          <span class="comment-time">{{.Comment.CreatedAt.Format "Jan 2, 2006 15:04"}}</span>
                         </div>
-                        <p class="comment-text-body">{{.Body}}</p>
+                        <p class="comment-text-body">{{.Comment.Body}}</p>
                       </div>
                     </div>
                   {{end}}
@@ -149,7 +149,7 @@
               </div>
 
               <form class="comment-input-form" action="/post/comment" method="POST">
-                <input type="hidden" name="post_id" value="{{.ID}}">
+                <input type="hidden" name="post_id" value="{{.Post.Post.ID}}">
                 <input type="text" name="comment_body" placeholder="Add to the conversation..." required class="comment-input-field">
                 <button type="submit" class="btn-black-submit">Reply</button>
               </form>
@@ -165,7 +165,9 @@
     <div class="sidebar-block shadow-card">
       <h3 class="sidebar-heading">Your Performance</h3>
       <div class="user-profile-widget">
-        <p class="user-role-badge">Level: <strong>{{.User.Role}}</strong></p>
+        {{if .CurrentUser}}
+        <p class="user-role-badge">Level: <strong>{{.CurrentUser.Role}}</strong></p>
+        {{end}}
         <div class="stat-row">
           <span>Created Threads</span>
           <strong>{{len .Posts}}</strong>
