@@ -342,21 +342,28 @@ func (r *PostRepository) List(ctx context.Context, filter domain.PostFilter) ([]
 		p.UpdatedAt = time.Unix(pUpdatedAt, 0)
 		author.CreatedAt = time.Unix(authorCreatedAt, 0)
 
-		// Get categories for this post
-		categories, err := r.GetCategoriesByPostID(ctx, p.ID)
-		if err != nil {
-			return nil, 0, fmt.Errorf("get categories for post: %w", err)
-		}
-
 		stats.Score = stats.LikeCount - stats.DislikeCount
 
 		posts = append(posts, domain.PostWithAuthor{
-			Post:       p,
-			Author:     author,
-			Categories: categories,
-			Stats:      stats,
-			UserVote:   userVote,
+			Post:     p,
+			Author:   author,
+			Stats:    stats,
+			UserVote: userVote,
 		})
+	}
+
+	// CHANGED: Explicitly close the cursor rows to free up the SQLite 
+	// connection read-lock before triggering supplementary database queries.
+	rows.Close()
+
+	// CHANGED: Query categories in a separate loop after the main database 
+	// cursor has been fully closed.
+	for i := range posts {
+		categories, err := r.GetCategoriesByPostID(ctx, posts[i].Post.ID)
+		if err != nil {
+			return nil, 0, fmt.Errorf("get categories for post: %w", err)
+		}
+		posts[i].Categories = categories
 	}
 
 	return posts, total, nil
