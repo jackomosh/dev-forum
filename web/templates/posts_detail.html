@@ -1,0 +1,120 @@
+{{define "title"}}{{.Post.Title}} — DevForum{{end}}
+
+{{define "content"}}
+<div class="subforum-container stack-layout detail-view-layout">
+  
+  <nav class="detail-navigation" aria-label="Back to feed">
+    <a href="/posts" class="back-feed-link">
+      <span class="arrow">←</span> Back to Discussions Feed
+    </a>
+  </nav>
+
+  <article class="expert-post-card detailed-card" id="post-{{.Post.ID}}">
+    
+    <header class="expert-post-header">
+      <div class="expert-author-info">
+        <div class="expert-author-avatar">
+          <span>{{slice .Post.AuthorName 0 1 | html}}</span>
+        </div>
+        <div class="expert-meta-block">
+          <span class="expert-author-username">@{{.Post.AuthorName}}</span>
+          <span class="expert-post-date">Published on {{.Post.CreatedAt}}</span>
+        </div>
+      </div>
+
+      <div class="expert-category-badges">
+        {{range .Post.Categories}}
+          <span class="badge-subforum">{{.}}</span>
+        {{end}}
+      </div>
+    </header>
+
+    <div class="expert-post-body">
+      <h1 class="expert-post-title detailed-title">{{.Post.Title}}</h1>
+      
+      <div class="expert-post-paragraph detailed-body-content">
+        {{.Post.Body}}
+      </div>
+    </div>
+
+    <div class="expert-post-footer detailed-footer">
+      <div class="expert-interaction-toolbar">
+        
+        {{if .User}}
+          <div class="vote-segmented-control">
+            <button class="expert-vote-btn expert-like-btn {{if eq .Post.UserVoted 1}}active-voted-like{{end}}" aria-label="Like post">
+              <span class="btn-icon">👍</span>
+              <span class="vote-count">{{.Post.Likes}}</span>
+            </button>
+            <button class="expert-vote-btn expert-dislike-btn {{if eq .Post.UserVoted -1}}active-voted-dislike{{end}}" aria-label="Dislike post">
+              <span class="btn-icon">👎</span>
+              <span class="vote-count">{{.Post.Dislikes}}</span>
+            </button>
+          </div>
+        {{else}}
+          <div class="vote-segmented-control disabled-control-group" title="Log in to react">
+            <span class="expert-vote-btn disabled-btn">
+              <span class="btn-icon">👍</span>
+              <span class="vote-count">{{.Post.Likes}}</span>
+            </span>
+            <span class="expert-vote-btn disabled-btn">
+              <span class="btn-icon">👎</span>
+              <span class="vote-count">{{.Post.Dislikes}}</span>
+            </span>
+          </div>
+        {{end}}
+
+        <span class="expert-comment-metric non-interactive-metric">
+          <span class="btn-icon">💬</span>
+          <span class="comment-count">{{if .Post.Comments}}{{len .Post.Comments}}{{else}}0{{end}}</span> Technical Responses
+        </span>
+
+      </div>
+      
+      {{if not .User}}
+        <div class="guest-action-notice">
+          <span>🔒 <a href="/login" class="inline-notice-link">Sign in</a> to join this discussion and vote.</span>
+        </div>
+      {{end}}
+    </div>
+
+    <div class="expert-comments-wrapper static-comments-box">
+      <div class="comments-inner-header">Discussion Thread ({{if .Post.Comments}}{{len .Post.Comments}}{{else}}0{{end}})</div>
+      
+      <div class="comments-timeline-stack">
+        {{if .Post.Comments}}
+          {{range .Post.Comments}}
+            <div class="timeline-comment-card">
+              <div class="comment-card-avatar">{{slice .Author 0 1 | html}}</div>
+              <div class="comment-card-body">
+                <div class="comment-card-top">
+                  <span class="comment-card-author">@{{.Author}}</span>
+                  <span class="comment-card-time">{{.CreatedAt}}</span>
+                </div>
+                <p class="comment-card-paragraph">{{.Body}}</p>
+              </div>
+            </div>
+          {{end}}
+        {{else}}
+          <p class="empty-comments-paragraph">No code feedback or engineering reviews have been left on this discussion. Be the first to start the thread!</p>
+        {{end}}
+      </div>
+
+      {{if .User}}
+        <form class="expert-comment-form" action="/post/comment" method="POST">
+          <input type="hidden" name="post_id" value="{{.Post.ID}}">
+          <input type="hidden" name="redirect_to" value="/post/{{.Post.ID}}">
+          <input type="text" name="comment_body" placeholder="Write a highly technical feedback, suggest an optimization..." required class="expert-comment-input">
+          <button type="submit" class="expert-comment-submit-btn">Send Comment</button>
+        </form>
+      {{else}}
+        <div class="guest-comment-blockade">
+          <p>You must be signed in to comment on posts. <a href="/login">Create an account or login</a> to contribute.</p>
+        </div>
+      {{end}}
+    </div>
+
+  </article>
+
+</div>
+{{end}}

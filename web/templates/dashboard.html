@@ -1,9 +1,16 @@
-{{define "title"}}Dashboard — DevForum{{end}}
+{{define "title"}}Dashboard — Dev Forum{{end}}
 
 {{define "content"}}
 <div class="dashboard-grid-wrapper">
 
+  <!-- Left Sidebar Navigation -->
   <aside class="dashboard-sidebar">
+    <div class="sidebar-action-container">
+      <a href="/post/create" class="btn-create-post-primary">
+        Create Post <span class="btn-icon">＋</span>
+      </a>
+    </div>
+
     <div class="sidebar-block">
       <h3 class="sidebar-heading">Discussions</h3>
       <ul class="filter-list">
@@ -33,7 +40,7 @@
         {{range .Categories}}
           <li>
             <a href="/dashboard?category={{.Slug}}" class="category-item {{if eq $.ActiveCat .Slug}}active{{end}}">
-              <span class="category-tag-indicator"></span>
+              <span class="category-hash">#</span>
               <span class="cat-name">{{.Name}}</span>
             </a>
           </li>
@@ -42,116 +49,125 @@
     </div>
   </aside>
 
-  <main class="dashboard-feed-area">
-
-    {{if .CurrentUser}}
-    <div class="create-post-card">
-      <div class="card-title-row">
-        <div class="user-avatar-small">
-          <span>{{slice .CurrentUser.Username 0 1 | html}}</span>
-        </div>
-        <span class="prompt-text">What's on your technical mind, @{{.CurrentUser.Username}}?</span>
+  <!-- Main Content Feed (Spaced Box Stream) -->
+  <main class="dashboard-feed-container">
+    
+    <div class="dashboard-toolbar-ribbon">
+      <div class="toolbar-left-filters">
+        <a href="/dashboard?sort=newest" class="toolbar-filter-btn {{if eq .Filter.Sort "newest"}}active{{end}}">
+          <span class="icon">🕒</span> Latest Threads
+        </a>
+        <a href="/dashboard?sort=top" class="toolbar-filter-btn {{if eq .Filter.Sort "top"}}active{{end}}">
+          <span class="icon">🔥</span> Top Discussions
+        </a>
       </div>
-      
-      <form class="quick-post-form" action="/post/create" method="POST">
-        <input type="text" name="title" placeholder="Catchy, descriptive title..." required class="quick-post-title">
-        <textarea name="body" placeholder="Provide background code context or explanations..." required class="quick-post-body" rows="4"></textarea>
-        
-        <div class="form-category-select">
-          <p class="select-label">Select matching categories:</p>
-          <div class="categories-checkbox-grid">
-            {{range .Categories}}
-              <label class="checkbox-badge">
-                <input type="checkbox" name="categories" value="{{.ID}}">
-                <span>{{.Name}}</span>
-              </label>
-            {{end}}
-          </div>
-        </div>
-
-        <div class="form-submit-row">
-          <button type="submit" class="btn-green-submit">Publish Post</button>
-        </div>
-      </form>
     </div>
-    {{end}}
 
-    <div class="feed-posts-list">
+    <div class="posts-stream">
       {{if not .Posts}}
-        <div class="empty-state-card">
+        <div class="empty-feed-placeholder">
           <div class="empty-icon">📂</div>
-          <h3>No posts found here</h3>
-          <p>Be the first to publish a discussion thread in this category view!</p>
+          <h3>No discussions found matching this criteria.</h3>
+          <p>Create a thread to get the conversation started!</p>
         </div>
       {{else}}
         {{range .Posts}}
-          <article class="post-card" id="post-{{.Post.Post.ID}}">
+          <article class="expert-post-card" id="post-{{.Post.Post.ID}}">
             
-            <div class="post-card-header">
-              <div class="post-author-meta">
-                <div class="author-avatar">{{slice .Post.Author.Username 0 1 | html}}</div>
-                <div>
-                  <span class="post-author-name">@{{.Post.Author.Username}}</span>
-                  <span class="post-timestamp">{{.Post.Post.CreatedAt.Format "Jan 2, 2006 15:04"}}</span>
+            <header class="expert-post-header">
+              <div class="expert-author-info">
+                <div class="expert-author-avatar">
+                  <span>{{slice .Post.Author.Username 0 1 | html}}</span>
+                </div>
+                <div class="expert-meta-block">
+                  <span class="expert-author-username">@{{.Post.Author.Username}}</span>
+                  <span class="expert-post-date">{{.Post.Post.CreatedAt.Format "Jan 02, 2006"}}</span>
                 </div>
               </div>
-              <div class="post-badges">
+
+              <div class="expert-category-badges">
                 {{range .Post.Categories}}
-                  <span class="badge badge-category">{{.Name}}</span>
+                  <span class="badge-subforum">#{{.Name}}</span>
                 {{end}}
               </div>
-            </div>
+            </header>
 
-            <div class="post-card-body">
-              <h2 class="post-title">{{.Post.Post.Title}}</h2>
-              <p class="post-text">{{.Post.Post.Body}}</p>
-            </div>
+            <div class="expert-post-body">
+              <h2 class="expert-post-title">
+                <a href="/post/{{.Post.Post.ID}}">{{.Post.Post.Title}}</a>
+              </h2>
+              <div class="expert-post-paragraph">
+                {{.Post.Post.Body}}
+              </div>
+            </div><br>
 
-            <div class="post-card-actions">
-              <div class="action-buttons-group">
-                <button class="action-btn vote-btn like-btn {{if eq .Post.UserVote 1}}voted-active{{end}}" aria-label="Like Post">
-                  <span class="action-icon">👍</span>
-                  <span class="count">{{.Post.Stats.LikeCount}}</span>
-                </button>
+            <!-- Footer Interactions (Red Hearts / Broken Hearts) -->
+            <div class="expert-post-footer">
+              <div class="expert-interaction-row">
+                
+                <div class="vote-widget-container">
+                  <!-- Red/White Heart Like -->
+                  <form action="/post/vote" method="POST" class="inline-vote-form">
+                    <input type="hidden" name="post_id" value="{{.Post.Post.ID}}">
+                    <input type="hidden" name="vote_val" value="1">
+                    <button type="submit" class="vote-btn heart-btn {{if eq .Post.UserVote 1}}voted-active{{end}}" aria-label="Like Post">
+                      <span class="action-icon">{{if eq .Post.UserVote 1}}❤️{{else}}🤍{{end}}</span>
+                      <span class="vote-count-label">{{.Post.Stats.LikeCount}}</span>
+                    </button>
+                  </form>
 
-                <button class="action-btn vote-btn dislike-btn {{if eq .Post.UserVote -1}}voted-active{{end}}" aria-label="Dislike Post">
-                  <span class="action-icon">👎</span>
-                  <span class="count">{{.Post.Stats.DislikeCount}}</span>
-                </button>
-
-                <button class="action-btn comment-toggle-btn" onclick="document.getElementById('comments-container-{{.Post.Post.ID}}').classList.toggle('active-collapsed')">
-                  <span class="action-icon">💬</span>
-                  <span class="count">{{if .Comments}}{{len .Comments}}{{else}}0{{end}}</span> Comments
+                  <!-- Broken Heart Dislike -->
+                  <form action="/post/vote" method="POST" class="inline-vote-form">
+                    <input type="hidden" name="post_id" value="{{.Post.Post.ID}}">
+                    <input type="hidden" name="vote_val" value="-1">
+                    <button type="submit" class="vote-btn broken-heart-btn {{if eq .Post.UserVote -1}}voted-active{{end}}" aria-label="Dislike Post">
+                      <span class="action-icon">💔</span>
+                      <span class="vote-count-label">{{.Post.Stats.DislikeCount}}</span>
+                    </button>
+                  </form>
+                </div><br>
+                
+                <button class="comments-counter-badge" onclick="document.getElementById('comments-timeline-{{.Post.Post.ID}}').classList.toggle('active-visible')">
+                  💬 <span class="comment-count-label">{{if .Comments}}{{len .Comments}}{{else}}0{{end}}</span> Comments
                 </button>
               </div>
             </div>
 
-            <div class="comments-section-container active-collapsed" id="comments-container-{{.Post.Post.ID}}">
+            <!-- Expandable Comments Area -->
+            <div class="discussion-comments-timeline" id="comments-timeline-{{.Post.Post.ID}}">
               <div class="comments-divider"></div>
+              <h3 class="timeline-heading">Feedback & Discussion</h3>
               
-              <div class="comments-list">
+              <div class="comments-scroll-area">
                 {{if .Comments}}
                   {{range .Comments}}
-                    <div class="comment-item">
-                      <div class="comment-author-avatar">{{slice .Author.Username 0 1 | html}}</div>
-                      <div class="comment-content">
-                        <div class="comment-meta">
-                          <span class="comment-author">@{{.Author.Username}}</span>
-                          <span class="comment-time">{{.Comment.CreatedAt.Format "Jan 2, 2006 15:04"}}</span>
+                    <div class="timeline-comment-card">
+                      <div class="comment-card-avatar">{{slice .Author.Username 0 1 | html}}</div>
+                      <div class="comment-card-body">
+                        <div class="comment-card-top">
+                          <span class="comment-card-author">@{{.Author.Username}}</span>
+                          <span class="comment-card-time">{{.Comment.CreatedAt.Format "Jan 02, 15:04"}}</span>
                         </div>
-                        <p class="comment-text-body">{{.Comment.Body}}</p>
+                        <p class="comment-card-paragraph">{{.Comment.Body}}</p>
                       </div>
                     </div>
                   {{end}}
                 {{else}}
-                  <p class="no-comments-msg">No feedback left on this thread yet.</p>
+                  <p class="empty-comments-paragraph">No commentary has been left on this thread yet.</p>
                 {{end}}
               </div>
 
+              <!-- Refactored Comment Input Form (Large Textarea & Bottom Button) -->
               <form class="comment-input-form" action="/post/comment" method="POST">
                 <input type="hidden" name="post_id" value="{{.Post.Post.ID}}">
-                <input type="text" name="comment_body" placeholder="Add to the conversation..." required class="comment-input-field">
-                <button type="submit" class="btn-black-submit">Reply</button>
+                
+                <div class="textarea-container">
+                  <textarea name="comment_body" placeholder="Write standard feedback, code reviews or follow-up questions..." required class="comment-input-field-large" rows="3"></textarea>
+                </div>
+
+                <div class="comment-form-footer">
+                  <button type="submit" class="btn-comment-submit-round">Add Comment</button>
+                </div>
               </form>
             </div>
 
@@ -161,6 +177,7 @@
     </div>
   </main>
 
+  <!-- Right Panel Widgets -->
   <aside class="dashboard-right-panel">
     <div class="sidebar-block shadow-card">
       <h3 class="sidebar-heading">Your Performance</h3>
