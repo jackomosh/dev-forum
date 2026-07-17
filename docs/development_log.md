@@ -184,6 +184,7 @@ You should see these messages from your terminal if everything goes as expected
 - Hand off dynamic templates to Member 3 for integration with Go HTTP route controllers.
 - Assist Member 5 with mapping specific DOM class hooks in `style.css` and `main.js`.
 
+
 ## Day 3 - Backend Entrypoint Refactor & Repository Wiring
 
 **Date:** 2026-07-14
@@ -231,3 +232,26 @@ env GOCACHE=/tmp/go-build-cache GOMODCACHE=/tmp/go-mod-cache go test -v ./...
 - Replace raw schema application on startup with versioned migrations.
 - Cache parsed templates instead of reparsing templates on each request.
 - Ensure developers close any external `sqlite3 forum.db` shell before running the app to avoid SQLite locks.
+
+
+## Day 3 - Dynamic UI Templates & Increased Additional Pages
+
+### **Date:** 2026-07-16
+### **Author:** [Jack Omondi](https://learn.zone01kisumu.ke/git/jacomondi)
+### **Branch:** `feature/ui-templates`
+
+### Goal
+Implement additional frontend pages, a robust, semantic, and reusable Go template structure inside (`web/templates/`) to serve as the unified presentation layer.
+
+### Implementation
+
+- **Frontend Pages (`web/templates/posts.html` & `web/templates/post_create.html` & `web/templates/posts_detail.html` )**: Implemented the fronend pages discussion feed displaying dynamic posts, categories, users create posts and edit posts dynamically, while also having the ability to view only one posts discussion once opened.
+
+### Verification (still-working)
+- Validate all templates syntax using Go template parsing logic.
+- Checke HTML markup semantics and structure via raw local file renders.
+- Confirm CSS selectors are cleanly structured, and each page is styled according to use cases and overal behaviour
+
+### Next Steps (still-working)
+- Hand off dynamic templates to all members for integration with Go HTTP route controllers or any other backend logics.
+- Make sure `style.css` and `main.js` are styling and ensuring responsiveness across pages.
