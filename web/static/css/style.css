@@ -948,527 +948,520 @@ body {
   }
 }
 
-/* ==========================================
-   DASHBOARD 3-COLUMN GRID SYSTEM
-   ========================================== */
+
+/* --- High-Grade Layout & Grid Stream (No Fragile CSS Grids for Stream Blocks) --- */
 .dashboard-grid-wrapper {
-  display: grid;
-  grid-template-columns: 240px 1fr 280px;
-  gap: 2rem;
-  max-width: 1400px;
-  margin: 2rem auto;
-  padding: 0 1.5rem;
-  align-items: start;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 2.5rem;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem;
+  box-sizing: border-box;
 }
 
-@media (max-width: 1024px) {
-  .dashboard-grid-wrapper {
-    grid-template-columns: 220px 1fr;
-  }
-  .dashboard-right-panel {
-    display: none; /* Hide right panel on tablets */
-  }
-}
-
-@media (max-width: 768px) {
-  .dashboard-grid-wrapper {
-    grid-template-columns: 1fr;
-  }
-  .dashboard-sidebar {
-    display: none; /* Mobile switches to main vertical drawer */
-  }
-}
-
-/* Sidebar Styling */
 .dashboard-sidebar {
-  background: #ffffff;
+  flex: 0 0 250px;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.dashboard-feed-container {
+  flex: 1;
+  min-width: 0;
+}
+
+.dashboard-right-panel {
+  flex: 0 0 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* --- THE BOX STREAM (Exact 40px Spacing Gap) --- */
+.posts-stream {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem; /* Generous 40px vertical stack spacing */
+}
+
+.expert-post-card {
+  background-color: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
-  padding: 1.5rem;
+  padding: 2rem;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.01);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-.sidebar-block {
+.expert-post-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+}
+
+/* Create Post Button Styling (Premium CTA Form) */
+.sidebar-action-container {
+  width: 100%;
+}
+
+.btn-create-post-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background-color: #000000;
+  color: #ffffff;
+  font-weight: 600;
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+  text-decoration: none;
+  padding: 0.9rem 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #000000;
+  width: 100%;
+  box-sizing: border-box;
+  text-align: center;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.btn-create-post-primary:hover {
+  background-color: #1e293b;
+  border-color: #1e293b;
+  color: #ffffff;
+}
+
+/* Category Hashtags Inside Sidebar and Post Headers */
+.category-hash {
+  color: #94a3b8;
+  font-weight: 600;
+  margin-right: 0.15rem;
+}
+
+.badge-subforum {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #475569;
+  background-color: #f1f5f9;
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+}
+
+/* --- Redesigned Heart Interaction Widgets --- */
+.vote-widget-container {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.inline-vote-form {
+  display: inline-flex;
+}
+
+.vote-btn {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+  padding: 0.45rem 1rem;
+  border-radius: 30px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.vote-btn:hover {
+  background-color: #f1f5f9;
+  transform: translateY(-1px);
+}
+
+/* Active Heart State */
+.heart-btn.voted-active {
+  background-color: #fff1f2;
+  border-color: #fca5a5;
+  color: #be123c;
+}
+
+/* Active Broken Heart State */
+.broken-heart-btn.voted-active {
+  background-color: #f8fafc;
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+
+/* Expansions */
+.discussion-comments-timeline {
+  display: none;
+}
+
+.discussion-comments-timeline.active-visible {
+  display: block;
+}
+
+/* --- High-Grade Box Stream Spacing --- */
+.posts-stream {
+  display: flex;
+  flex-direction: column;
+  gap: 3.5rem; /* Exactly 56px visual separation between independent thread modules */
+}
+
+/* --- Styled Comments Area & Large Fonts --- */
+.discussion-comments-timeline {
+  display: none;
+  margin-top: 1.75rem;
+}
+
+.discussion-comments-timeline.active-visible {
+  display: block;
+}
+
+.timeline-comment-card {
+  display: flex;
+  gap: 1.25rem;
+  padding: 1.25rem 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+/* Increased avatar sizes for better comments readability */
+.comment-card-avatar {
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background-color: #f1f5f9;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  border: 1px solid #e2e8f0;
+}
+
+.comment-card-body {
+  flex: 1;
+}
+
+.comment-card-top {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.4rem;
+}
+
+/* Increased font sizes for comments metadata */
+.comment-card-author {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 1.05rem;
+}
+
+.comment-card-time {
+  font-size: 0.85rem;
+  color: #94a3b8;
+}
+
+/* Highly readable comment text */
+.comment-card-paragraph {
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: #334155;
+  margin: 0;
+}
+
+/* --- Large Textarea Input Formatting --- */
+.comment-input-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.textarea-container {
+  width: 100%;
+}
+
+.comment-input-field-large {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 1rem 1.25rem;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  background-color: #f8fafc;
+  font-family: inherit;
+  font-size: 1.05rem;
+  line-height: 1.5;
+  color: #0f172a;
+  resize: vertical;
+  transition: all 0.15s ease-in-out;
+}
+
+.comment-input-field-large:focus {
+  outline: none;
+  background-color: #ffffff;
+  border-color: #94a3b8;
+  box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.15);
+}
+
+/* --- Round Bottom Action Buttons --- */
+.comment-form-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-comment-submit-round {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #000000;
+  color: #ffffff;
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 0.75rem 2rem;
+  border-radius: 30px; /* Perfectly round pill button layout */
+  border: 1.5px solid #000000;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+}
+
+.btn-comment-submit-round:hover {
+  background-color: #1e293b;
+  border-color: #1e293b;
+}
+
+.btn-comment-submit-round:active {
+  transform: scale(0.97);
+}
+
+/* Active red heart style */
+.heart-btn.voted-active {
+  background-color: #fff1f2;
+  border-color: #fca5a5;
+  color: #e11d48; /* Crimson red */
+}
+
+
+/* --- Editor Page Container --- */
+.dashboard-editor-container {
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 3rem;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+
+.editor-header-banner {
+  margin-bottom: 2.5rem;
+}
+
+.editor-badge {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  color: #64748b;
+  font-weight: 700;
+}
+
+.editor-main-title {
+  font-size: 2.25rem;
+  margin: 0.5rem 0;
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.editor-subtitle {
+  color: #64748b;
+  font-size: 1.05rem;
+}
+
+/* --- Form Input Cards --- */
+.editor-input-card {
   margin-bottom: 2rem;
 }
 
-.sidebar-block:last-child {
-  margin-bottom: 0;
+.editor-input-label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
 }
 
-.sidebar-heading {
-  font-family: 'Space Grotesk', sans-serif;
+.editor-field-helper {
   font-size: 0.9rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
   color: #64748b;
   margin-bottom: 1rem;
 }
 
-.filter-list, .category-list, .active-users-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.filter-item, .category-item {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem;
-  color: #1e293b;
-  text-decoration: none;
-  font-weight: 500;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-  font-size: 0.95rem;
-}
-
-.filter-item:hover, .category-item:hover, .filter-item.active, .category-item.active {
-  background: #f1f5f9;
-  color: #22c55e; /* Theme Green highlight */
-}
-
-/* Fallback Post Images CSS Rules (So they display fine if assets are empty) */
-.featured-img-container, .card-img-container, .split-image-container {
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-  position: relative;
-  overflow: hidden;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.featured-img-container::before, .card-img-container::before {
-  content: 'DevForum Technical Visual';
-  font-family: 'Space Grotesk', sans-serif;
-  color: rgba(255, 255, 255, 0.4);
-  font-size: 1rem;
-  font-weight: 500;
-  position: absolute;
-}
-
-/* Set dynamic fallback images if the file system path fails */
-.editorial-img {
+.editor-text-input {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-  opacity: 0.85;
-  transition: opacity 0.3s ease;
-}
-
-/* Cards & Actions */
-.create-post-card {
-  background: #fff;
+  padding: 0.75rem;
   border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
+  border-radius: 6px;
+  font-size: 1rem;
 }
 
-.post-card {
-  background: #fff;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 2rem;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+/* --- Category Selection Grid --- */
+.category-selectors-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 1rem;
 }
 
-.badge-category {
-  background: #e8f5e9;
-  color: #2e7d32;
-  font-size: 0.75rem;
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  font-weight: 600;
-}
-
-.action-btn {
-  display: inline-flex;
+.category-checkbox-pill {
+  display: flex;
   align-items: center;
   gap: 0.5rem;
-  border: 1px solid #e2e8f0;
-  background: #fff;
   padding: 0.5rem 1rem;
-  border-radius: 8px;
-  font-weight: 500;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background 0.2s;
 }
 
-.action-btn:hover, .voted-active {
-  background: #f1f5f9;
-  border-color: #cbd5e1;
+.category-checkbox-pill:hover {
+  background: #f8fafc;
 }
 
-.voted-active.like-btn {
-  background: #e8f5e9;
-  color: #2e7d32;
-  border-color: #a5d6a7;
+/* --- WYSIWYG Editor Styling --- */
+.word-processor-container {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
 }
 
-.voted-active.dislike-btn {
-  background: #ffebee;
-  color: #c62828;
-  border-color: #ef9a9a;
+.processor-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
 }
 
-/* Collapsible Comments styling */
-.active-collapsed {
+.toolbar-group {
+  display: flex;
+  gap: 0.25rem;
+  border-right: 1px solid #e2e8f0;
+  padding-right: 0.5rem;
+  margin-right: 0.5rem;
+}
+
+.tool-btn {
+  padding: 0.4rem 0.6rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.tool-btn:hover {
+  background: #e2e8f0;
+  border-radius: 4px;
+}
+
+.wysiwyg-content-area {
+  min-height: 300px;
+  padding: 1.5rem;
+  outline: none;
+}
+
+/* --- Emoji Picker --- */
+.emoji-picker-hidden {
+  display: none;
+}
+
+.emoji-picker-active {
   display: block;
+  padding: 0.5rem;
+  border-bottom: 1px solid #e2e8f0;
 }
 
-/* ==========================================
-   CONTACT PAGE LAYOUT
-   ========================================== */
+.emoji-grid {
+  display: flex;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+/* --- Submission --- */
+.editor-submission-bar {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 2rem;
+}
+
+/* --- Contact Page Layout --- */
 .contact-page-container {
+  width: 100%;
   max-width: 1200px;
-  margin: 3rem auto;
-  padding: 0 1.5rem;
+  margin: 0 auto;
+  padding: 40px 20px;
+  box-sizing: border-box;
 }
 
-/* Split layout grid */
 .contact-split-grid {
   display: grid;
-  grid-template-columns: 1.2fr 0.8fr;
-  gap: 3rem;
-  align-items: stretch;
-  margin-bottom: 4rem;
+  grid-template-columns: 1fr 400px;
+  gap: 40px;
+  margin-bottom: 60px;
 }
 
-@media (max-width: 900px) {
+/* Form Section */
+.contact-form-card {
+  padding: 40px;
+  border: 1px solid #000000;
+}
+
+.contact-form-heading {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.contact-form-subtext {
+  margin-bottom: 2rem;
+  color: #666;
+}
+
+/* Info Sidebar */
+.contact-details-banner {
+  background: #f8fafc;
+  padding: 40px;
+  border: 1px solid #e2e8f0;
+}
+
+.info-item {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.info-icon {
+  font-size: 1.5rem;
+}
+
+.info-text h4 {
+  margin: 0 0 5px 0;
+  font-size: 1rem;
+}
+
+/* Map Section */
+.map-embed-section {
+  border-top: 1px solid #000000;
+  padding-top: 40px;
+}
+
+.map-heading {
+  font-family: 'Space Grotesk', sans-serif;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 1024px) {
   .contact-split-grid {
     grid-template-columns: 1fr;
-    gap: 2rem;
   }
 }
-
-/* Left Column Form Card */
-.contact-form-card {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 2.5rem;
-}
-
-.contact-form-heading {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 2rem;
-  font-weight: 700;
-  color: #0f172a;
-  margin-bottom: 0.5rem;
-}
-
-.contact-form-subtext {
-  color: #64748b;
-  font-size: 1rem;
-  margin-bottom: 2rem;
-  line-height: 1.5;
-}
-
-/* Right Column Side Banner */
-.contact-details-banner {
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-  color: #ffffff;
-  border-radius: 12px;
-  padding: 3rem 2.5rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-}
-
-.banner-title {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 1.75rem;
-  font-weight: 600;
-  margin: 0.5rem 0 1rem;
-}
-
-.banner-description {
-  color: #cbd5e1;
-  font-size: 0.95rem;
-  line-height: 1.6;
-  margin-bottom: 2.5rem;
-}
-
-/* Contact detail row elements */
-.info-details-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1.75rem;
-}
-
-.info-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-}
-
-.info-icon {
-  font-size: 1.5rem;
-  background: rgba(255, 255, 255, 0.1);
-  width: 42px;
-  height: 42px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-}
-
-.info-text h4 {
-  font-size: 1rem;
-  margin: 0 0 0.25rem 0;
-  font-family: 'Space Grotesk', sans-serif;
-  color: #ffffff;
-}
-
-.info-text p, .info-text p a {
-  font-size: 0.9rem;
-  margin: 0;
-  color: #94a3b8;
-  text-decoration: none;
-  transition: color 0.2s;
-}
-
-.info-text p a:hover {
-  color: #22c55e; /* Green accent color */
-}
-
-.banner-footer-note {
-  margin-top: 3rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding-top: 1.5rem;
-  font-size: 0.85rem;
-  color: #94a3b8;
-}
-
-/* Map Section Styles */
-.map-embed-section {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 2.5rem;
-}
-
-.map-heading {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #0f172a;
-  margin-bottom: 1.5rem;
-}
-
-.map-iframe-wrapper {
-  position: relative;
-  width: 100%;
-  overflow: hidden;
-  border-radius: 8px;
-  box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
-}
-
-.map-iframe-wrapper iframe {
-  display: block;
-}
-
-/* ==========================================
-   MOBILE RESPONSIVE CONTACT PAGE
-   ========================================== */
-.contact-page-container {
-  max-width: 1200px;
-  margin: 3rem auto;
-  padding: 0 1.5rem;
-}
-
-/* Base grid layout for desktop */
-.contact-split-grid {
-  display: grid;
-  grid-template-columns: 1.2fr 0.8fr;
-  gap: 3rem;
-  align-items: stretch;
-  margin-bottom: 4rem;
-}
-
-/* Left Column Form Card */
-.contact-form-card {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 2.5rem;
-}
-
-.contact-form-heading {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 2rem;
-  font-weight: 700;
-  color: #0f172a;
-  margin-bottom: 0.5rem;
-}
-
-.contact-form-subtext {
-  color: #64748b;
-  font-size: 1rem;
-  margin-bottom: 2rem;
-  line-height: 1.5;
-}
-
-/* Responsive Two-Column form inputs (First name & Last name) */
-.form-two-col {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
-}
-
-/* Right Column Side Banner */
-.contact-details-banner {
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-  color: #ffffff;
-  border-radius: 12px;
-  padding: 3rem 2.5rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-}
-
-.banner-title {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 1.75rem;
-  font-weight: 600;
-  margin: 0.5rem 0 1rem;
-}
-
-.banner-description {
-  color: #cbd5e1;
-  font-size: 0.95rem;
-  line-height: 1.6;
-  margin-bottom: 2.5rem;
-}
-
-/* Contact detail row elements */
-.info-details-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1.75rem;
-}
-
-.info-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-}
-
-.info-icon {
-  font-size: 1.5rem;
-  background: rgba(255, 255, 255, 0.1);
-  width: 42px;
-  height: 42px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-  flex-shrink: 0; /* Prevents icon from squeezing on narrow viewports */
-}
-
-.info-text h4 {
-  font-size: 1rem;
-  margin: 0 0 0.25rem 0;
-  font-family: 'Space Grotesk', sans-serif;
-  color: #ffffff;
-}
-
-.info-text p, .info-text p a {
-  font-size: 0.9rem;
-  margin: 0;
-  color: #94a3b8;
-  text-decoration: none;
-  transition: color 0.2s;
-  word-break: break-all; /* Prevents long emails from breaking layout boundaries */
-}
-
-.info-text p a:hover {
-  color: #22c55e;
-}
-
-.banner-footer-note {
-  margin-top: 3rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding-top: 1.5rem;
-  font-size: 0.85rem;
-  color: #94a3b8;
-}
-
-/* Map Section Styles */
-.map-embed-section {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 2.5rem;
-}
-
-.map-heading {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #0f172a;
-  margin-bottom: 1.5rem;
-}
-
-.map-iframe-wrapper {
-  position: relative;
-  width: 100%;
-  overflow: hidden;
-  border-radius: 8px;
-  box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
-}
-
-.map-iframe-wrapper iframe {
-  display: block;
-}
-
-/* ==========================================
-   MEDIA QUERIES (RESPONSIVE ADAPTATIONS)
-   ========================================== */
-
-/* Tablet & Smaller Screens */
-@media (max-width: 900px) {
-  .contact-page-container {
-    margin: 1.5rem auto;
-  }
-
-  .contact-split-grid {
-    grid-template-columns: 1fr; /* Stacks the form and banner vertically */
-    gap: 2rem;
-    margin-bottom: 2.5rem;
-  }
-
-  .contact-form-card, 
-  .contact-details-banner,
-  .map-embed-section {
-    padding: 2rem; /* Reduces padding slightly for more screen real estate */
-  }
-}
-
-/* Mobile Devices */
-@media (max-width: 550px) {
-  .contact-page-container {
-    padding: 0 1rem;
-  }
-
-  .contact-form-card, 
-  .contact-details-banner,
-  .map-embed-section {
-    padding: 1.5rem 1rem;
-    border-radius: 8px;
-  }
-
-  .contact-form-heading {
-    font-size: 1.5rem;
-  }
-
-  .banner-title {
-    font-size: 1.4rem;
-  }
-
-  /*
