@@ -255,3 +255,29 @@ Implement additional frontend pages, a robust, semantic, and reusable Go templat
 ### Next Steps (still-working)
 - Hand off dynamic templates to all members for integration with Go HTTP route controllers or any other backend logics.
 - Make sure `style.css` and `main.js` are styling and ensuring responsiveness across pages.
+
+## Day 4 - Menu Buttons
+
+### **Date:** 2026-07-17
+### **Author:** [Jack Omondi](https://learn.zone01kisumu.ke/git/jacomondi)
+### **Branch:** `feature/ui-templates`
+
+### Goal
+Implement additional functioning menu button, across all Go template structure inside (`web/templates/`).
+
+### Implementation
+
+- **Frontend Improvements (`setup an hamburger menu button` )**:
+
+### Verification
+- Validated that all Cascading Style Sheet and JavaScript is present for the menu button to work as expected
+- Confirmed that these changes indeed make sure the menu is working
+
+### Next Steps
+- Fix the post_create page to accept images and render cleanly
+- Fix the filter by relevant / trending discussions
+- Fix the voting i.e likes and dislikes and connect to the backend
+- Insert more categories on the dashboard
+- Add a password toggle on the login / register pages
+- Fix the Online Developers on the dashboard to be dynamic and not hardcoded
+- Fix the posts_detail page to show up now its 404
