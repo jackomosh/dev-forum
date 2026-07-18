@@ -27,6 +27,11 @@ type PostListViewData struct {
 	ActiveFilter string
 }
 
+type CreatePostViewData struct {
+	BaseViewData
+	Categories []domain.Category
+}
+
 type PostDetailViewData struct {
 	BaseViewData
 	Post        domain.PostWithAuthor
