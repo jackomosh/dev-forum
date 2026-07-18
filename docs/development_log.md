@@ -295,6 +295,7 @@ Resolve the create-post flow from the dashboard, which was returning a 405 Metho
 - Updated [internal/handler/server.go](internal/handler/server.go) so the create-post handler now renders the creation form for GET requests and preserves the existing publish behavior for POST requests.
 - Added a dedicated view model in [internal/handler/post.go](internal/handler/post.go) for the create-post page.
 - Added a regression test in [internal/handler/server_test.go](internal/handler/server_test.go) to ensure the endpoint renders the form successfully on GET.
+- Added forum.db to git ignore for good practice.
 
 ### Verification
 - Ran `go test ./internal/handler`
