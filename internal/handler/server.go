@@ -192,47 +192,63 @@ func (h *ForumHandler) PostsRedirect(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ForumHandler) CreatePost(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
+	switch r.Method {
+	case http.MethodGet:
+		user, ok := h.requireCurrentUser(w, r)
+		if !ok {
+			return
+		}
+
+		categories, err := h.repos.Categories().GetAll(r.Context())
+		if err != nil {
+			h.serverError(w, err)
+			return
+		}
+
+		h.renderer.Render(w, "post_create.html", CreatePostViewData{
+			BaseViewData: BaseViewData{CurrentUser: user},
+			Categories:   categories,
+		})
+	case http.MethodPost:
+		user, ok := h.requireCurrentUser(w, r)
+		if !ok {
+			return
+		}
+
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, "bad request", http.StatusBadRequest)
+			return
+		}
+
+		form, err := h.parsePostForm(r)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		draft := domain.PostDraft{
+			AuthorID:    user.ID,
+			Title:       form.Title,
+			Body:        form.Body,
+			CategoryIDs: form.CategoryIDs,
+		}
+
+		post := &domain.Post{
+			AuthorID: draft.AuthorID,
+			Title:    draft.Title,
+			Body:     draft.Body,
+			Status:   domain.PostStatusPublished,
+		}
+
+		if err := h.repos.Posts().Create(r.Context(), post, draft.CategoryIDs); err != nil {
+			h.serverError(w, err)
+			return
+		}
+
+		http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
+	default:
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
-		return
 	}
-
-	user, ok := h.requireCurrentUser(w, r)
-	if !ok {
-		return
-	}
-
-	if err := r.ParseForm(); err != nil {
-		http.Error(w, "bad request", http.StatusBadRequest)
-		return
-	}
-
-	form, err := h.parsePostForm(r)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	draft := domain.PostDraft{
-		AuthorID:    user.ID,
-		Title:       form.Title,
-		Body:        form.Body,
-		CategoryIDs: form.CategoryIDs,
-	}
-
-	post := &domain.Post{
-		AuthorID: draft.AuthorID,
-		Title:    draft.Title,
-		Body:     draft.Body,
-		Status:   domain.PostStatusPublished,
-	}
-
-	if err := h.repos.Posts().Create(r.Context(), post, draft.CategoryIDs); err != nil {
-		h.serverError(w, err)
-		return
-	}
-
-	http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
 }
 
 func (h *ForumHandler) CreateComment(w http.ResponseWriter, r *http.Request) {
