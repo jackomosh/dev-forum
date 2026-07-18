@@ -189,7 +189,7 @@ You should see these messages from your terminal if everything goes as expected
 
 **Date:** 2026-07-14
 
-**Author:** Codex, guided by [Bramwel Mutugi](https://learn.zone01kisumu.ke/git/mumutugi)
+**Author:** [Bramwel Mutugi](https://learn.zone01kisumu.ke/git/mumutugi)
 
 **Branch:** `main`
 
@@ -281,3 +281,28 @@ Implement additional functioning menu button, across all Go template structure i
 - Add a password toggle on the login / register pages
 - Fix the Online Developers on the dashboard to be dynamic and not hardcoded
 - Fix the posts_detail page to show up now its 404
+
+## Day 5 - Fix Create Post Route Handling
+
+**Date:** 2026-07-18
+**Author:** [Bramwel Mutugi](https://learn.zone01kisumu.ke/git/mumutugi)
+**Branch:** fix/method_error
+
+### Goal
+Resolve the create-post flow from the dashboard, which was returning a 405 Method Not Allowed because the handler only supported POST while the UI routed to the endpoint with GET.
+
+### Implementation
+- Updated [internal/handler/server.go](internal/handler/server.go) so the create-post handler now renders the creation form for GET requests and preserves the existing publish behavior for POST requests.
+- Added a dedicated view model in [internal/handler/post.go](internal/handler/post.go) for the create-post page.
+- Added a regression test in [internal/handler/server_test.go](internal/handler/server_test.go) to ensure the endpoint renders the form successfully on GET.
+
+### Verification
+- Ran `go test ./internal/handler`
+- Ran `go test ./...`
+
+Both commands completed successfully, and the new regression test passed.
+
+### Next Steps
+- Add CSRF protection for state-changing forms.
+- Improve validation and error feedback for post creation.
+- Continue polishing the dashboard and post creation experience.
