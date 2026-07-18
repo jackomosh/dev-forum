@@ -7,110 +7,94 @@ import (
 	"strconv"
 
 	"forum/internal/domain"
-	"forum/internal/repository"
 )
 
 // VoteHandler handles reaction-related HTTP requests
 type VoteHandler struct {
-	voteRepo repository.VoteRepository
-	postRepo repository.PostRepository
+	voteRepo VoteRepository
+	renderer *Renderer
 }
 
 // NewVoteHandler creates a new vote handler
 func NewVoteHandler(
-	voteRepo repository.VoteRepository,
-	postRepo repository.PostRepository,
+	voteRepo VoteRepository,
+	renderer *Renderer,
 ) *VoteHandler {
 	return &VoteHandler{
 		voteRepo: voteRepo,
-		postRepo: postRepo,
+		renderer: renderer,
 	}
 }
 
 // HandleVote processes like/dislike actions (AJAX endpoint)
 func (h *VoteHandler) HandleVote(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
 	// Get current user
 	user, ok := GetUserFromContext(r.Context())
 	if !ok {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
 	}
 
 	// Parse JSON request
 	var req VoteRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		http.Error(w, "invalid request body", http.StatusBadRequest)
 		return
 	}
 
-	// Validate target type - only posts for now (can extend to comments later)
+	// Validate target type
 	if req.Target != domain.VoteTargetPost {
-		http.Error(w, "Invalid vote target", http.StatusBadRequest)
+		http.Error(w, "invalid vote target", http.StatusBadRequest)
 		return
 	}
 
 	// Validate vote value
-	if req.Value != domain.VoteUp && req.Value != domain.VoteDown && req.Value != domain.VoteNone {
-		http.Error(w, "Invalid vote value", http.StatusBadRequest)
+	if req.Value != domain.VoteLike && req.Value != domain.VoteDislike && req.Value != domain.VoteNone {
+		http.Error(w, "invalid vote value", http.StatusBadRequest)
 		return
 	}
 
-	// Convert VoteValue to string for repository
-	voteType := ""
-	switch req.Value {
-	case domain.VoteUp:
-		voteType = "like"
-	case domain.VoteDown:
-		voteType = "dislike"
-	case domain.VoteNone:
-		voteType = "none"
+	// Create vote object
+	vote := &domain.Vote{
+		UserID:   user.ID,
+		Target:   req.Target,
+		TargetID: req.TargetID,
+		Value:    req.Value,
 	}
 
 	// Save vote using repository
-	if err := h.voteRepo.SaveVote(user.ID, req.TargetID, voteType); err != nil {
+	if err := h.voteRepo.AddVote(r.Context(), vote); err != nil {
 		log.Printf("Error saving vote: %v", err)
 		http.Error(w, "Failed to save vote", http.StatusInternalServerError)
 		return
 	}
 
-	// Get updated counts
-	likes, dislikes, err := h.voteRepo.GetVoteCounts(req.TargetID)
+	// Get updated stats
+	stats, err := h.voteRepo.GetPostStats(r.Context(), domain.PostID(req.TargetID))
 	if err != nil {
-		log.Printf("Error getting vote counts: %v", err)
-		http.Error(w, "Failed to get vote counts", http.StatusInternalServerError)
+		log.Printf("Error getting vote stats: %v", err)
+		http.Error(w, "Failed to get vote stats", http.StatusInternalServerError)
 		return
 	}
 
 	// Get user's current vote
-	userVote, err := h.voteRepo.GetUserVote(user.ID, req.TargetID)
+	userVote, err := h.voteRepo.GetVote(r.Context(), user.ID, req.Target, req.TargetID)
 	if err != nil {
-		// Default to "none" if no vote found
-		userVote = &domain.Vote{VoteType: "none"}
+		userVote = &domain.Vote{Value: domain.VoteNone}
 	}
 
-	// Convert to VoteValue
-	var userVoteValue domain.VoteValue
-	switch userVote.VoteType {
-	case "like":
-		userVoteValue = domain.VoteUp
-	case "dislike":
-		userVoteValue = domain.VoteDown
-	default:
-		userVoteValue = domain.VoteNone
-	}
-
-	// Prepare response using your VoteResponse struct
+	// Prepare response
 	response := VoteResponse{
 		TargetID:     req.TargetID,
-		LikeCount:    likes,
-		DislikeCount: dislikes,
-		Score:        likes - dislikes,
-		UserVote:     userVoteValue,
+		LikeCount:    stats.LikeCount,
+		DislikeCount: stats.DislikeCount,
+		Score:        stats.Score,
+		UserVote:     userVote.Value,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -123,54 +107,49 @@ func (h *VoteHandler) HandleVote(w http.ResponseWriter, r *http.Request) {
 // HandleGetVoteStatus gets the vote status for a post (optional endpoint)
 func (h *VoteHandler) HandleGetVoteStatus(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
 	// Get post ID from query
 	postIDStr := r.URL.Query().Get("post_id")
 	if postIDStr == "" {
-		http.Error(w, "Post ID required", http.StatusBadRequest)
+		http.Error(w, "post_id required", http.StatusBadRequest)
 		return
 	}
 
 	postID, err := strconv.ParseInt(postIDStr, 10, 64)
 	if err != nil {
-		http.Error(w, "Invalid post ID", http.StatusBadRequest)
+		http.Error(w, "invalid post_id", http.StatusBadRequest)
 		return
 	}
 
 	// Get current user (optional)
 	user, _ := GetUserFromContext(r.Context())
 
-	// Get vote counts
-	likes, dislikes, err := h.voteRepo.GetVoteCounts(postID)
+	// Get vote stats
+	stats, err := h.voteRepo.GetPostStats(r.Context(), domain.PostID(postID))
 	if err != nil {
-		log.Printf("Error getting vote counts: %v", err)
-		http.Error(w, "Failed to get vote counts", http.StatusInternalServerError)
+		log.Printf("Error getting vote stats: %v", err)
+		http.Error(w, "Failed to get vote stats", http.StatusInternalServerError)
 		return
 	}
 
 	// Get user's vote if logged in
 	var userVoteValue domain.VoteValue = domain.VoteNone
 	if user != nil {
-		userVote, err := h.voteRepo.GetUserVote(user.ID, postID)
+		userVote, err := h.voteRepo.GetVote(r.Context(), user.ID, domain.VoteTargetPost, postID)
 		if err == nil && userVote != nil {
-			switch userVote.VoteType {
-			case "like":
-				userVoteValue = domain.VoteUp
-			case "dislike":
-				userVoteValue = domain.VoteDown
-			}
+			userVoteValue = userVote.Value
 		}
 	}
 
 	// Prepare response
 	response := VoteResponse{
 		TargetID:     postID,
-		LikeCount:    likes,
-		DislikeCount: dislikes,
-		Score:        likes - dislikes,
+		LikeCount:    stats.LikeCount,
+		DislikeCount: stats.DislikeCount,
+		Score:        stats.Score,
 		UserVote:     userVoteValue,
 	}
 

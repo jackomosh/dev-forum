@@ -7,14 +7,17 @@ import (
 	"path/filepath"
 )
 
+// Renderer handles template rendering
 type Renderer struct {
 	templateDir string
 }
 
+// NewRenderer creates a new template renderer
 func NewRenderer(templateDir string) *Renderer {
 	return &Renderer{templateDir: templateDir}
 }
 
+// Render renders a template with the provided data
 func (r *Renderer) Render(w http.ResponseWriter, tmpl string, data interface{}) {
 	files := []string{
 		filepath.Join(r.templateDir, "base.html"),
@@ -32,4 +35,10 @@ func (r *Renderer) Render(w http.ResponseWriter, tmpl string, data interface{}) 
 		log.Printf("template execute error: %v", err)
 		http.Error(w, "failed to render template", http.StatusInternalServerError)
 	}
+}
+
+// serverError logs and returns a 500 error
+func (r *Renderer) serverError(w http.ResponseWriter, err error) {
+	log.Printf("server error: %v", err)
+	http.Error(w, "internal server error", http.StatusInternalServerError)
 }

@@ -1,338 +1,263 @@
 package handler
 
 import (
-	"html/template"
-	"log"
 	"net/http"
 	"strconv"
 	"strings"
-	"time"
 
 	"forum/internal/domain"
-	"forum/internal/repository"
 )
 
 // PostHandler handles post-related HTTP requests
 type PostHandler struct {
-	postRepo    repository.PostRepository
-	commentRepo repository.CommentRepository
-	voteRepo    repository.VoteRepository
-	templates   *template.Template
+	postRepo    PostRepository
+	commentRepo CommentRepository
+	voteRepo    VoteRepository
+	renderer    *Renderer
 }
 
 // NewPostHandler creates a new posts handler
 func NewPostHandler(
-	postRepo repository.PostRepository,
-	commentRepo repository.CommentRepository,
-	voteRepo repository.VoteRepository,
-	templates *template.Template,
+	postRepo PostRepository,
+	commentRepo CommentRepository,
+	voteRepo VoteRepository,
+	renderer *Renderer,
 ) *PostHandler {
 	return &PostHandler{
 		postRepo:    postRepo,
 		commentRepo: commentRepo,
 		voteRepo:    voteRepo,
-		templates:   templates,
+		renderer:    renderer,
 	}
 }
 
 // HandleHomePage displays the main feed with posts
 func (h *PostHandler) HandleHomePage(w http.ResponseWriter, r *http.Request) {
-	// Get current user from context
-	user, _ := GetUserFromContext(r.Context())
-
-	// Parse filter parameters
-	filter := r.URL.Query().Get("filter")
-	category := r.URL.Query().Get("category")
-
-	// Build filter
-	postFilter := &domain.PostFilter{
-		Kind: domain.FilterAll,
+	if r.URL.Path != "/" {
+		http.NotFound(w, r)
+		return
 	}
 
-	if category != "" {
-		postFilter.Kind = domain.FilterCategory
-		postFilter.Category = category
+	user, _ := GetPublicUserFromContext(r.Context())
+
+	data := BaseViewData{
+		CurrentUser: user,
+	}
+	h.renderer.Render(w, "index.html", data)
+}
+
+// HandleDashboard displays the dashboard with posts
+func (h *PostHandler) HandleDashboard(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
 	}
 
-	if user != nil {
-		if filter == "created" {
-			postFilter.Kind = domain.FilterCreated
-			postFilter.UserID = user.ID
-		} else if filter == "liked" {
-			postFilter.Kind = domain.FilterLiked
-			postFilter.UserID = user.ID
+	currentUser, ok := GetUserFromContext(r.Context())
+	if !ok {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+	publicUser, _ := GetPublicUserFromContext(r.Context())
+
+	categories, err := h.postRepo.GetAllCategories(r.Context())
+	if err != nil {
+		h.renderer.serverError(w, err)
+		return
+	}
+
+	activeCategory := strings.TrimSpace(r.URL.Query().Get("category"))
+	activeFilter := strings.TrimSpace(r.URL.Query().Get("filter"))
+
+	filter := domain.PostFilter{
+		Kind:   domain.PostFilterAll,
+		Sort:   domain.SortNewest,
+		Limit:  20,
+		Offset: 0,
+	}
+	filter.ViewerID = currentUser.ID
+
+	if activeCategory != "" {
+		for _, cat := range categories {
+			if cat.Slug == activeCategory {
+				filter.Kind = domain.PostFilterCategory
+				filter.CategoryID = cat.ID
+				break
+			}
 		}
 	}
 
-	// Fetch posts using repository
-	posts, err := h.postRepo.GetPosts(postFilter)
+	switch activeFilter {
+	case "created":
+		filter.Kind = domain.PostFilterCreated
+		filter.AuthorID = currentUser.ID
+	case "liked":
+		filter.Kind = domain.PostFilterLiked
+		filter.ViewerID = currentUser.ID
+	default:
+		activeFilter = ""
+	}
+
+	// Get posts using List method
+	posts, _, err := h.postRepo.List(r.Context(), filter)
 	if err != nil {
-		log.Printf("Error fetching posts: %v", err)
-		posts = []*domain.Post{}
+		h.renderer.serverError(w, err)
+		return
 	}
 
-	// Fetch all categories for the filter sidebar
-	categories, err := h.postRepo.GetAllCategories()
-	if err != nil {
-		log.Printf("Error fetching categories: %v", err)
-		categories = []*domain.Category{}
-	}
-
-	// Convert to PostListViewData
-	var publicUser *domain.PublicUser
-	if user != nil {
-		publicUser = &domain.PublicUser{
-			ID:        user.ID,
-			Username:  user.Username,
-			CreatedAt: user.CreatedAt.String(),
-		}
-	}
-
-	// Build PostListItems
-	var postItems []PostListItem
+	// Build post list items
+	items := make([]PostListItem, 0, len(posts))
 	for _, post := range posts {
 		// Get comments for this post
-		comments, _ := h.commentRepo.GetCommentsByPostID(post.ID)
-		
-		var commentAuthors []domain.CommentWithAuthor
-		for _, comment := range comments {
-			// Get author for each comment
-			author, _ := h.userRepo.GetUserByID(comment.UserID)
-			commentAuthors = append(commentAuthors, domain.CommentWithAuthor{
-				Comment: *comment,
-				Author:  domain.PublicUser{
-					ID:        author.ID,
-					Username:  author.Username,
-					CreatedAt: author.CreatedAt.String(),
-				},
-			})
+		comments, _, err := h.commentRepo.GetByPostID(r.Context(), post.Post.ID, 5, 0)
+		if err != nil {
+			comments = []domain.CommentWithAuthor{}
 		}
-
-		// Get author for post
-		author, _ := h.userRepo.GetUserByID(post.UserID)
-		
-		postItems = append(postItems, PostListItem{
-			Post: domain.PostWithAuthor{
-				Post:   *post,
-				Author: domain.PublicUser{
-					ID:        author.ID,
-					Username:  author.Username,
-					CreatedAt: author.CreatedAt.String(),
-				},
-			},
-			Comments: commentAuthors,
+		items = append(items, PostListItem{
+			Post:     post,
+			Comments: comments,
 		})
 	}
 
 	data := PostListViewData{
 		BaseViewData: BaseViewData{
 			CurrentUser: publicUser,
-			Error:       "",
 		},
-		Posts:        postItems,
+		Posts:        items,
 		Categories:   categories,
-		Filter:       *postFilter,
-		ActiveCat:    category,
-		ActiveFilter: filter,
+		Filter:       filter,
+		ActiveCat:    activeCategory,
+		ActiveFilter: activeFilter,
 	}
 
-	// Render template
-	templateName := "index.html"
-	if h.templates.Lookup("dashboard.html") != nil {
-		templateName = "dashboard.html"
-	}
-	h.renderTemplate(w, templateName, data)
+	h.renderer.Render(w, "dashboard.html", data)
 }
 
 // HandleViewPost displays a single post with comments
 func (h *PostHandler) HandleViewPost(w http.ResponseWriter, r *http.Request) {
-	// Extract post ID from URL path
-	path := r.URL.Path
-	idStr := ""
-
-	if strings.HasPrefix(path, "/post/") {
-		idStr = strings.TrimPrefix(path, "/post/")
-	} else {
-		idStr = r.URL.Query().Get("id")
-	}
-
-	if idStr == "" {
-		http.Error(w, "Post ID required", http.StatusBadRequest)
+	path := strings.TrimPrefix(r.URL.Path, "/post/")
+	id, err := strconv.ParseInt(path, 10, 64)
+	if err != nil {
+		http.Error(w, "invalid post ID", http.StatusBadRequest)
 		return
 	}
 
-	id, err := strconv.ParseInt(idStr, 10, 64)
+	post, err := h.postRepo.GetByID(r.Context(), domain.PostID(id))
 	if err != nil {
-		http.Error(w, "Invalid post ID", http.StatusBadRequest)
+		http.Error(w, "post not found", http.StatusNotFound)
 		return
 	}
 
-	// Get post using repository
-	post, err := h.postRepo.GetPostByID(id)
+	currentUser, _ := GetPublicUserFromContext(r.Context())
+
+	comments, _, err := h.commentRepo.GetByPostID(r.Context(), domain.PostID(id), 100, 0)
 	if err != nil {
-		log.Printf("Error fetching post: %v", err)
-		http.Error(w, "Post not found", http.StatusNotFound)
-		return
+		comments = []domain.CommentWithAuthor{}
 	}
 
-	// Get author
-	author, err := h.userRepo.GetUserByID(post.UserID)
-	if err != nil {
-		log.Printf("Error fetching author: %v", err)
-		author = &domain.User{Username: "Unknown"}
-	}
-
-	// Get comments
-	comments, err := h.commentRepo.GetCommentsByPostID(id)
-	if err != nil {
-		log.Printf("Error fetching comments: %v", err)
-		comments = []*domain.Comment{}
-	}
-
-	// Build comment list with authors
-	var commentAuthors []domain.CommentWithAuthor
-	for _, comment := range comments {
-		commentAuthor, err := h.userRepo.GetUserByID(comment.UserID)
-		if err != nil {
-			commentAuthor = &domain.User{Username: "Unknown"}
-		}
-		commentAuthors = append(commentAuthors, domain.CommentWithAuthor{
-			Comment: *comment,
-			Author: domain.PublicUser{
-				ID:        commentAuthor.ID,
-				Username:  commentAuthor.Username,
-				CreatedAt: commentAuthor.CreatedAt.String(),
-			},
-		})
-	}
-
-	// Get current user
-	user, _ := GetUserFromContext(r.Context())
-	var publicUser *domain.PublicUser
-	if user != nil {
-		publicUser = &domain.PublicUser{
-			ID:        user.ID,
-			Username:  user.Username,
-			CreatedAt: user.CreatedAt.String(),
-		}
-	}
-
-	// Prepare data for template using your structs
 	data := PostDetailViewData{
 		BaseViewData: BaseViewData{
-			CurrentUser: publicUser,
-			Error:       "",
+			CurrentUser: currentUser,
 		},
-		Post: domain.PostWithAuthor{
-			Post:   *post,
-			Author: domain.PublicUser{
-				ID:        author.ID,
-				Username:  author.Username,
-				CreatedAt: author.CreatedAt.String(),
-			},
-		},
-		Comments: commentAuthors,
+		Post:     *post,
+		Comments: comments,
 		CommentForm: CommentForm{
-			PostID: id,
-			Body:   "",
+			PostID: domain.PostID(id),
 		},
 	}
 
-	h.renderTemplate(w, "post_detail.html", data)
+	h.renderer.Render(w, "post_detail.html", data)
 }
 
 // HandleCreatePostPage displays the create post form
 func (h *PostHandler) HandleCreatePostPage(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
-	// Get current user
-	user, ok := GetUserFromContext(r.Context())
+	_, ok := GetUserFromContext(r.Context())
 	if !ok {
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
 
-	categories, err := h.postRepo.GetAllCategories()
+	publicUser, _ := GetPublicUserFromContext(r.Context())
+	categories, err := h.postRepo.GetAllCategories(r.Context())
 	if err != nil {
-		log.Printf("Error fetching categories: %v", err)
-		categories = []*domain.Category{}
-	}
-
-	publicUser := &domain.PublicUser{
-		ID:        user.ID,
-		Username:  user.Username,
-		CreatedAt: user.CreatedAt.String(),
+		h.renderer.serverError(w, err)
+		return
 	}
 
 	data := struct {
 		BaseViewData
-		Categories []*domain.Category
+		Categories []domain.Category
 	}{
 		BaseViewData: BaseViewData{
 			CurrentUser: publicUser,
-			Error:       "",
 		},
 		Categories: categories,
 	}
 
-	h.renderTemplate(w, "create_post.html", data)
+	h.renderer.Render(w, "create_post.html", data)
 }
 
 // HandleCreatePost processes post creation
 func (h *PostHandler) HandleCreatePost(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
-	// Get current user
 	user, ok := GetUserFromContext(r.Context())
 	if !ok {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
 	}
 
 	if err := r.ParseForm(); err != nil {
-		http.Error(w, "Invalid form data", http.StatusBadRequest)
+		http.Error(w, "bad request", http.StatusBadRequest)
 		return
 	}
 
-	title := r.FormValue("title")
-	content := r.FormValue("content")
+	title := strings.TrimSpace(r.FormValue("title"))
+	body := strings.TrimSpace(r.FormValue("body"))
 	categories := r.Form["categories"]
 
-	if title == "" || content == "" {
-		http.Error(w, "Title and content are required", http.StatusBadRequest)
+	if title == "" || body == "" {
+		http.Error(w, "title and body are required", http.StatusBadRequest)
 		return
 	}
 
-	// Create post
+	// Parse category IDs
+	var categoryIDs []domain.CategoryID
+	for _, catName := range categories {
+		// Try to get category by name
+		cat, err := h.postRepo.GetCategoryByName(r.Context(), catName)
+		if err != nil {
+			// Create category if it doesn't exist
+			cat, err = h.postRepo.CreateCategory(r.Context(), catName)
+			if err != nil {
+				h.renderer.serverError(w, err)
+				return
+			}
+		}
+		if cat != nil {
+			categoryIDs = append(categoryIDs, cat.ID)
+		}
+	}
+
 	post := &domain.Post{
-		Title:     title,
-		Content:   content,
-		UserID:    user.ID,
-		Username:  user.Username,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		Title:    title,
+		Body:     body,
+		AuthorID: user.ID,
+		Status:   domain.PostStatusPublished,
 	}
 
-	// Save post using repository
-	if err := h.postRepo.CreatePost(post, categories); err != nil {
-		log.Printf("Error creating post: %v", err)
-		http.Error(w, "Failed to create post", http.StatusInternalServerError)
+	if err := h.postRepo.Create(r.Context(), post, categoryIDs); err != nil {
+		h.renderer.serverError(w, err)
 		return
 	}
 
-	http.Redirect(w, r, "/", http.StatusSeeOther)
-}
-
-// renderTemplate renders an HTML template
-func (h *PostHandler) renderTemplate(w http.ResponseWriter, templateName string, data interface{}) {
-	if err := h.templates.ExecuteTemplate(w, templateName, data); err != nil {
-		log.Printf("Error rendering template %s: %v", templateName, err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-	}
+	http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
 }

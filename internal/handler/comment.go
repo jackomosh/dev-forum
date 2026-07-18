@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"time"
 
 	"forum/internal/domain"
 )
@@ -58,105 +57,19 @@ func (h *CommentHandler) HandleCreateComment(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	// Create comment using your CommentForm struct
 	comment := &domain.Comment{
-		PostID:    domain.PostID(postID),
-		AuthorID:  user.ID,
-		Body:      body,
-		Status:    domain.CommentStatusVisible,
-		CreatedAt: time.Now(),
+		PostID:   domain.PostID(postID),
+		AuthorID: user.ID,
+		Body:     body,
+		Status:   domain.CommentStatusVisible,
 	}
 
-	// Save comment using repository
 	if err := h.commentRepo.Create(r.Context(), comment); err != nil {
 		h.renderer.serverError(w, err)
 		return
 	}
 
-	// Redirect back to post
 	http.Redirect(w, r, "/post/"+strconv.FormatInt(postID, 10), http.StatusSeeOther)
-}
-
-// HandleViewComment displays a single comment
-func (h *CommentHandler) HandleViewComment(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	// Extract comment ID from URL path
-	path := strings.TrimPrefix(r.URL.Path, "/comment/")
-	id, err := strconv.ParseInt(path, 10, 64)
-	if err != nil {
-		http.Error(w, "invalid comment ID", http.StatusBadRequest)
-		return
-	}
-
-	comment, err := h.commentRepo.GetByID(r.Context(), domain.CommentID(id))
-	if err != nil {
-		http.Error(w, "comment not found", http.StatusNotFound)
-		return
-	}
-
-	user, _ := GetPublicUserFromContext(r.Context())
-
-	// Use your CommentViewData struct
-	data := CommentViewData{
-		BaseViewData: BaseViewData{
-			CurrentUser: user,
-		},
-		Comment: *comment,
-	}
-
-	h.renderer.Render(w, "comment_detail.html", data)
-}
-
-// HandleDeleteComment deletes a comment
-func (h *CommentHandler) HandleDeleteComment(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost && r.Method != http.MethodDelete {
-		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	// Get current user
-	user, ok := GetUserFromContext(r.Context())
-	if !ok {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
-		return
-	}
-
-	if err := r.ParseForm(); err != nil {
-		http.Error(w, "bad request", http.StatusBadRequest)
-		return
-	}
-
-	commentID, err := strconv.ParseInt(r.FormValue("comment_id"), 10, 64)
-	if err != nil {
-		http.Error(w, "invalid comment ID", http.StatusBadRequest)
-		return
-	}
-
-	// Get comment to check ownership
-	comment, err := h.commentRepo.GetByID(r.Context(), domain.CommentID(commentID))
-	if err != nil {
-		http.Error(w, "comment not found", http.StatusNotFound)
-		return
-	}
-
-	// Check if user is the author or admin
-	if comment.AuthorID != user.ID && user.Role != domain.UserRoleAdmin {
-		http.Error(w, "forbidden", http.StatusForbidden)
-		return
-	}
-
-	// Delete comment
-	if err := h.commentRepo.Delete(r.Context(), domain.CommentID(commentID)); err != nil {
-		h.renderer.serverError(w, err)
-		return
-	}
-
-	// Redirect back to post
-	http.Redirect(w, r, "/post/"+strconv.FormatInt(int64(comment.PostID), 10), http.StatusSeeOther)
 }
 
 // HandleGetComments retrieves comments for a post (AJAX endpoint)

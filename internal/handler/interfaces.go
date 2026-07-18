@@ -1,4 +1,4 @@
-package repository
+package handler
 
 import (
 	"context"
@@ -6,6 +6,11 @@ import (
 	"forum/internal/domain"
 )
 
+// ============================================
+// REPOSITORY INTERFACES
+// ============================================
+
+// UserRepository defines database operations for users
 type UserRepository interface {
 	Create(ctx context.Context, user *domain.User) error
 	GetByID(ctx context.Context, id domain.UserID) (*domain.User, error)
@@ -16,6 +21,7 @@ type UserRepository interface {
 	ExistsByUsername(ctx context.Context, username string) (bool, error)
 }
 
+// SessionRepository defines database operations for sessions
 type SessionRepository interface {
 	Create(ctx context.Context, session *domain.Session) error
 	GetByID(ctx context.Context, id domain.SessionID) (*domain.Session, error)
@@ -25,6 +31,7 @@ type SessionRepository interface {
 	CleanupExpired(ctx context.Context) error
 }
 
+// PostRepository defines database operations for posts
 type PostRepository interface {
 	Create(ctx context.Context, post *domain.Post, categoryIDs []domain.CategoryID) error
 	GetByID(ctx context.Context, id domain.PostID) (*domain.PostWithAuthor, error)
@@ -32,8 +39,13 @@ type PostRepository interface {
 	Delete(ctx context.Context, id domain.PostID) error
 	List(ctx context.Context, filter domain.PostFilter) ([]domain.PostWithAuthor, int, error)
 	GetCategoriesByPostID(ctx context.Context, postID domain.PostID) ([]domain.Category, error)
+	GetAllCategories(ctx context.Context) ([]domain.Category, error)
+	GetCategoryByID(ctx context.Context, id domain.CategoryID) (*domain.Category, error)
+	GetCategoryByName(ctx context.Context, name string) (*domain.Category, error)
+	CreateCategory(ctx context.Context, name string) (*domain.Category, error)
 }
 
+// CommentRepository defines database operations for comments
 type CommentRepository interface {
 	Create(ctx context.Context, comment *domain.Comment) error
 	GetByID(ctx context.Context, id domain.CommentID) (*domain.CommentWithAuthor, error)
@@ -42,6 +54,7 @@ type CommentRepository interface {
 	Delete(ctx context.Context, id domain.CommentID) error
 }
 
+// CategoryRepository defines database operations for categories
 type CategoryRepository interface {
 	GetAll(ctx context.Context) ([]domain.Category, error)
 	GetByID(ctx context.Context, id domain.CategoryID) (*domain.Category, error)
@@ -49,6 +62,7 @@ type CategoryRepository interface {
 	Create(ctx context.Context, category *domain.Category) error
 }
 
+// VoteRepository defines database operations for votes
 type VoteRepository interface {
 	AddVote(ctx context.Context, vote *domain.Vote) error
 	GetVote(ctx context.Context, userID domain.UserID, target domain.VoteTarget, targetID int64) (*domain.Vote, error)
@@ -56,15 +70,4 @@ type VoteRepository interface {
 	GetCommentStats(ctx context.Context, commentID domain.CommentID) (*domain.CommentStats, error)
 	RemoveVote(ctx context.Context, userID domain.UserID, target domain.VoteTarget, targetID int64) error
 	GetUserVotedPostIDs(ctx context.Context, userID domain.UserID) ([]domain.PostID, error)
-}
-
-// Repository aggregates all repository interfaces
-type Repository interface {
-	Users() UserRepository
-	Sessions() SessionRepository
-	Posts() PostRepository
-	Comments() CommentRepository
-	Categories() CategoryRepository
-	Votes() VoteRepository
-	Close() error
 }

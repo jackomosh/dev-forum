@@ -1,57 +1,22 @@
 package handler
 
 import (
-	"html/template"
-	"log"
 	"net/http"
-	"time"
-
-	"forum/internal/domain"
-	"forum/internal/repository"
+	"strings"
 )
-
-type RegisterRequest struct {
-	Username string
-	Email    string
-	Password string
-}
 
 // AuthHandler handles authentication HTTP requests
 type AuthHandler struct {
-	userRepo    repository.UserRepository
-	sessionRepo repository.SessionRepository
 	authService AuthService
-	templates   *template.Template
+	renderer    *Renderer
 }
 
 // NewAuthHandler creates a new auth handler
-func NewAuthHandler(
-	userRepo repository.UserRepository,
-	sessionRepo repository.SessionRepository,
-	authService AuthService,
-	templates *template.Template,
-) *AuthHandler {
+func NewAuthHandler(authService AuthService, renderer *Renderer) *AuthHandler {
 	return &AuthHandler{
-		userRepo:    userRepo,
-		sessionRepo: sessionRepo,
 		authService: authService,
-		templates:   templates,
+		renderer:    renderer,
 	}
-}
-
-// AuthPageData contains data for auth page rendering
-type AuthPageData struct {
-	Error       string
-	Success     string
-	Username    string
-	Email       string
-	IsLoggedIn  bool
-	CurrentUser *domain.User
-}
-
-type AuthViewData struct {
-	BaseViewData
-	Form RegisterRequest
 }
 
 // HandleRegisterPage displays the registration form
@@ -61,14 +26,14 @@ func (h *AuthHandler) HandleRegisterPage(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	data := AuthPageData{
-		Error:       "",
-		Success:     "",
-		IsLoggedIn:  false,
-		CurrentUser: nil,
+	data := AuthViewData{
+		BaseViewData: BaseViewData{
+			Error: "",
+		},
+		Form: RegisterRequest{},
 	}
 
-	h.renderTemplate(w, "register.html", data)
+	h.renderer.Render(w, "register.html", data)
 }
 
 // HandleRegister processes registration form submission
@@ -83,54 +48,69 @@ func (h *AuthHandler) HandleRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	username := r.FormValue("username")
-	email := r.FormValue("email")
+	username := strings.TrimSpace(r.FormValue("username"))
+	email := strings.TrimSpace(r.FormValue("email"))
 	password := r.FormValue("password")
 	confirmPassword := r.FormValue("confirm_password")
 
 	// Validate input
 	if username == "" || email == "" || password == "" {
-		data := AuthPageData{
-			Error:    "All fields are required",
-			Username: username,
-			Email:    email,
+		data := AuthViewData{
+			BaseViewData: BaseViewData{
+				Error: "All fields are required",
+			},
+			Form: RegisterRequest{
+				Username: username,
+				Email:    email,
+			},
 		}
-		h.renderTemplate(w, "register.html", data)
+		h.renderer.Render(w, "register.html", data)
 		return
 	}
 
 	if password != confirmPassword {
-		data := AuthPageData{
-			Error:    "Passwords do not match",
-			Username: username,
-			Email:    email,
+		data := AuthViewData{
+			BaseViewData: BaseViewData{
+				Error: "Passwords do not match",
+			},
+			Form: RegisterRequest{
+				Username: username,
+				Email:    email,
+			},
 		}
-		h.renderTemplate(w, "register.html", data)
+		h.renderer.Render(w, "register.html", data)
 		return
 	}
 
 	// Call auth service to register user
-	user, err := h.authService.RegisterUser(username, email, password)
+	user, err := h.authService.RegisterUser(r.Context(), username, email, password)
 	if err != nil {
-		data := AuthPageData{
-			Error:    err.Error(),
-			Username: username,
-			Email:    email,
+		data := AuthViewData{
+			BaseViewData: BaseViewData{
+				Error: err.Error(),
+			},
+			Form: RegisterRequest{
+				Username: username,
+				Email:    email,
+			},
 		}
-		h.renderTemplate(w, "register.html", data)
+		h.renderer.Render(w, "register.html", data)
 		return
 	}
 
 	// Auto-login after registration
-	sessionToken, err := h.authService.CreateSession(user.ID)
+	sessionToken, err := h.authService.CreateSession(r.Context(), user.ID)
 	if err != nil {
-		log.Printf("Error creating session: %v", err)
-		data := AuthPageData{
-			Error:    "Registration successful but login failed. Please login manually.",
-			Username: username,
-			Email:    email,
+		data := AuthViewData{
+			BaseViewData: BaseViewData{
+				Error: "Registration successful but login failed. Please login manually.",
+			},
+			Form: RegisterRequest{
+				Username: username,
+				Email:    email,
+			},
 		}
-		h.renderTemplate(w, "register.html", data)
+		h.renderer.Render(w, "register.html", data)
 		return
 	}
 
@@ -148,14 +128,14 @@ func (h *AuthHandler) HandleLoginPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data := AuthPageData{
-		Error:       "",
-		Success:     "",
-		IsLoggedIn:  false,
-		CurrentUser: nil,
+	data := AuthViewData{
+		BaseViewData: BaseViewData{
+			Error: "",
+		},
+		Form: RegisterRequest{},
 	}
 
-	h.renderTemplate(w, "login.html", data)
+	h.renderer.Render(w, "login.html", data)
 }
 
 // HandleLogin processes login form submission
@@ -170,38 +150,43 @@ func (h *AuthHandler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	email := r.FormValue("email")
+	email := strings.TrimSpace(r.FormValue("email"))
 	password := r.FormValue("password")
 
 	if email == "" || password == "" {
-		data := AuthPageData{
-			Error: "Email and password are required",
-			Email: email,
+		data := AuthViewData{
+			BaseViewData: BaseViewData{
+				Error: "Email and password are required",
+			},
+			Form: RegisterRequest{Email: email},
 		}
-		h.renderTemplate(w, "login.html", data)
+		h.renderer.Render(w, "login.html", data)
 		return
 	}
 
 	// Call auth service to authenticate user
-	user, err := h.authService.AuthenticateUser(email, password)
+	user, err := h.authService.AuthenticateUser(r.Context(), email, password)
 	if err != nil {
-		data := AuthPageData{
-			Error: "Invalid email or password",
-			Email: email,
+		data := AuthViewData{
+			BaseViewData: BaseViewData{
+				Error: "Invalid email or password",
+			},
+			Form: RegisterRequest{Email: email},
 		}
-		h.renderTemplate(w, "login.html", data)
+		h.renderer.Render(w, "login.html", data)
 		return
 	}
 
 	// Create session
-	sessionToken, err := h.authService.CreateSession(user.ID)
+	sessionToken, err := h.authService.CreateSession(r.Context(), user.ID)
 	if err != nil {
-		log.Printf("Error creating session: %v", err)
-		data := AuthPageData{
-			Error: "Failed to create session. Please try again.",
-			Email: email,
+		data := AuthViewData{
+			BaseViewData: BaseViewData{
+				Error: "Failed to create session. Please try again.",
+			},
+			Form: RegisterRequest{Email: email},
 		}
-		h.renderTemplate(w, "login.html", data)
+		h.renderer.Render(w, "login.html", data)
 		return
 	}
 
@@ -218,8 +203,8 @@ func (h *AuthHandler) HandleLogout(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("session_token")
 	if err == nil {
 		// Delete session via auth service
-		if err := h.authService.DeleteSession(cookie.Value); err != nil {
-			log.Printf("Error deleting session: %v", err)
+		if err := h.authService.DeleteSession(r.Context(), cookie.Value); err != nil {
+			// Log error but continue
 		}
 	}
 
@@ -237,9 +222,9 @@ func (h *AuthHandler) setSessionCookie(w http.ResponseWriter, token string) {
 		Value:    token,
 		Path:     "/",
 		HttpOnly: true,
-		Secure:   false, // Set to true in production with HTTPS
-		SameSite: http.SameSiteStrictMode,
-		MaxAge:   24 * 60 * 60, // 24 hours
+		Secure:   false,
+		SameSite: http.SameSiteLaxMode,
+		MaxAge:   24 * 60 * 60,
 	}
 	http.SetCookie(w, cookie)
 }
@@ -252,16 +237,8 @@ func (h *AuthHandler) clearSessionCookie(w http.ResponseWriter) {
 		Path:     "/",
 		HttpOnly: true,
 		Secure:   false,
-		SameSite: http.SameSiteStrictMode,
+		SameSite: http.SameSiteLaxMode,
 		MaxAge:   -1,
 	}
 	http.SetCookie(w, cookie)
-}
-
-// renderTemplate renders an HTML template
-func (h *AuthHandler) renderTemplate(w http.ResponseWriter, templateName string, data interface{}) {
-	if err := h.templates.ExecuteTemplate(w, templateName, data); err != nil {
-		log.Printf("Error rendering template %s: %v", templateName, err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-	}
 }

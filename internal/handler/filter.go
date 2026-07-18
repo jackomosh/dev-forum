@@ -9,23 +9,6 @@ import (
 	"forum/internal/domain"
 )
 
-// FilterForm represents the filter form data
-type FilterForm struct {
-	CategoryID domain.CategoryID
-	Kind       domain.PostFilterKind
-	Search     string
-	Sort       domain.SortOrder
-	Page       int
-}
-
-// PaginationViewData contains pagination data
-type PaginationViewData struct {
-	Page       int
-	Limit      int
-	Total      int
-	TotalPages int
-}
-
 // FilterHandler handles filter-related HTTP requests
 type FilterHandler struct {
 	postRepo PostRepository
@@ -95,7 +78,7 @@ func (h *FilterHandler) HandleFilter(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Apply user filter
+	// Apply user filter - using AuthorID for created posts
 	switch filterType {
 	case string(domain.PostFilterCreated):
 		if user == nil {
@@ -103,11 +86,14 @@ func (h *FilterHandler) HandleFilter(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		filter.Kind = domain.PostFilterCreated
+		filter.AuthorID = user.ID
 	case string(domain.PostFilterLiked):
 		if user == nil {
 			http.Error(w, "unauthorized", http.StatusUnauthorized)
+			return
 		}
 		filter.Kind = domain.PostFilterLiked
+		filter.ViewerID = user.ID
 	}
 
 	// Apply search filter
@@ -122,13 +108,13 @@ func (h *FilterHandler) HandleFilter(w http.ResponseWriter, r *http.Request) {
 	case "most_liked":
 		filter.Sort = domain.SortMostLiked
 	case "most_commented":
-		filter.Sort = domain.SortMostCommented
+		filter.Sort = domain.SortMostComment
 	default:
 		filter.Sort = domain.SortNewest
 	}
 
 	// Get filtered posts
-	posts, total, err := h.postRepo.List(r.Context(), filter)
+	posts, _, err := h.postRepo.List(r.Context(), filter)
 	if err != nil {
 		h.renderer.serverError(w, err)
 		return
@@ -150,20 +136,6 @@ func (h *FilterHandler) HandleFilter(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Calculate pagination
-	totalPages := (total + filter.Limit - 1) / filter.Limit
-	if totalPages < 1 {
-		totalPages = 1
-	}
-
-	// Build pagination data
-	pagination := PaginationViewData{
-		Page:       page,
-		Limit:      filter.Limit,
-		Total:      total,
-		TotalPages: totalPages,
-	}
-
 	data := PostListViewData{
 		BaseViewData: BaseViewData{
 			CurrentUser: publicUser,
@@ -175,8 +147,6 @@ func (h *FilterHandler) HandleFilter(w http.ResponseWriter, r *http.Request) {
 		ActiveFilter: filterType,
 	}
 
-	// Add pagination to data
-	// render the dashboard with filter applied
 	h.renderer.Render(w, "dashboard.html", data)
 }
 
@@ -207,3 +177,65 @@ func (h *FilterHandler) HandleGetFilterOptions(w http.ResponseWriter, r *http.Re
 	}
 
 	user, _ := GetUserFromContext(r.Context())
+
+	// Build filter options
+	options := struct {
+		Categories   []domain.Category `json:"categories"`
+		SortOptions  []struct {
+			Value string `json:"value"`
+			Label string `json:"label"`
+		} `json:"sort_options"`
+		FilterOptions []struct {
+			Value        string `json:"value"`
+			Label        string `json:"label"`
+			AuthRequired bool   `json:"auth_required"`
+		} `json:"filter_options"`
+	}{
+		SortOptions: []struct {
+			Value string `json:"value"`
+			Label string `json:"label"`
+		}{
+			{Value: "newest", Label: "Newest First"},
+			{Value: "oldest", Label: "Oldest First"},
+			{Value: "most_liked", Label: "Most Liked"},
+			{Value: "most_commented", Label: "Most Commented"},
+		},
+		FilterOptions: []struct {
+			Value        string `json:"value"`
+			Label        string `json:"label"`
+			AuthRequired bool   `json:"auth_required"`
+		}{
+			{Value: "", Label: "All Posts", AuthRequired: false},
+			{Value: "created", Label: "My Posts", AuthRequired: true},
+			{Value: "liked", Label: "Liked Posts", AuthRequired: true},
+		},
+	}
+
+	// Get categories
+	categories, err := h.postRepo.GetAllCategories(r.Context())
+	if err != nil {
+		h.renderer.serverError(w, err)
+		return
+	}
+	options.Categories = categories
+
+	// If user is not logged in, remove auth-required options
+	if user == nil {
+		var publicFilterOptions []struct {
+			Value        string `json:"value"`
+			Label        string `json:"label"`
+			AuthRequired bool   `json:"auth_required"`
+		}
+		for _, opt := range options.FilterOptions {
+			if !opt.AuthRequired {
+				publicFilterOptions = append(publicFilterOptions, opt)
+			}
+		}
+		options.FilterOptions = publicFilterOptions
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(options); err != nil {
+		h.renderer.serverError(w, err)
+	}
+}

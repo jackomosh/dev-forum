@@ -2,12 +2,10 @@ package main
 
 import (
 	"log"
-
-	"forum/internal/app"
 )
 
 func main() {
-	if err := app.Run(); err != nil {
-		log.Fatal(err)
+	if err := Run(); err != nil {
+		log.Fatalf("Failed to run application: %v", err)
 	}
 }

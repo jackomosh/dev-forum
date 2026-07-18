@@ -40,8 +40,8 @@ func (r *PostRepository) Create(ctx context.Context, post *domain.Post, category
 		post.Title,
 		post.Body,
 		post.Status,
-		now.Unix(), // Convert to Unix timestamp
-		now.Unix(), // Convert to Unix timestamp
+		now.Unix(),
+		now.Unix(),
 	).Scan(&post.ID)
 	if err != nil {
 		return fmt.Errorf("create post: %w", err)
@@ -148,7 +148,7 @@ func (r *PostRepository) Update(ctx context.Context, post *domain.Post) error {
 		post.Title,
 		post.Body,
 		post.Status,
-		post.UpdatedAt.Unix(), // Convert to Unix timestamp
+		post.UpdatedAt.Unix(),
 		post.ID,
 	)
 	if err != nil {
@@ -419,4 +419,109 @@ func (r *PostRepository) getPostStats(ctx context.Context, postID domain.PostID)
 
 	stats.Score = stats.LikeCount - stats.DislikeCount
 	return &stats, nil
+}
+
+// ============================================
+// CATEGORY METHODS
+// ============================================
+
+// GetAllCategories implements repository.PostRepository
+func (r *PostRepository) GetAllCategories(ctx context.Context) ([]domain.Category, error) {
+	query := `SELECT id, name, slug, description, created_at FROM categories ORDER BY name ASC`
+	
+	rows, err := r.client.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, fmt.Errorf("get all categories: %w", err)
+	}
+	defer rows.Close()
+	
+	var categories []domain.Category
+	for rows.Next() {
+		var category domain.Category
+		var createdAt int64
+		err := rows.Scan(
+			&category.ID,
+			&category.Name,
+			&category.Slug,
+			&category.Description,
+			&createdAt,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("scan category: %w", err)
+		}
+		category.CreatedAt = time.Unix(createdAt, 0)
+		categories = append(categories, category)
+	}
+	
+	return categories, nil
+}
+
+// GetCategoryByID implements repository.PostRepository
+func (r *PostRepository) GetCategoryByID(ctx context.Context, id domain.CategoryID) (*domain.Category, error) {
+	query := `SELECT id, name, slug, description, created_at FROM categories WHERE id = ?`
+	
+	var category domain.Category
+	var createdAt int64
+	err := r.client.db.QueryRowContext(ctx, query, id).Scan(
+		&category.ID,
+		&category.Name,
+		&category.Slug,
+		&category.Description,
+		&createdAt,
+	)
+	
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("get category by id: %w", err)
+	}
+	
+	category.CreatedAt = time.Unix(createdAt, 0)
+	return &category, nil
+}
+
+// GetCategoryByName implements repository.PostRepository
+func (r *PostRepository) GetCategoryByName(ctx context.Context, name string) (*domain.Category, error) {
+	query := `SELECT id, name, slug, description, created_at FROM categories WHERE name = ?`
+	
+	var category domain.Category
+	var createdAt int64
+	err := r.client.db.QueryRowContext(ctx, query, name).Scan(
+		&category.ID,
+		&category.Name,
+		&category.Slug,
+		&category.Description,
+		&createdAt,
+	)
+	
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("get category by name: %w", err)
+	}
+	
+	category.CreatedAt = time.Unix(createdAt, 0)
+	return &category, nil
+}
+
+// CreateCategory implements repository.PostRepository
+func (r *PostRepository) CreateCategory(ctx context.Context, name string) (*domain.Category, error) {
+	slug := strings.ToLower(strings.ReplaceAll(name, " ", "-"))
+	query := `INSERT INTO categories (name, slug, created_at) VALUES (?, ?, ?) RETURNING id`
+	
+	var id domain.CategoryID
+	now := time.Now().Unix()
+	err := r.client.db.QueryRowContext(ctx, query, name, slug, now).Scan(&id)
+	if err != nil {
+		return nil, fmt.Errorf("create category: %w", err)
+	}
+	
+	return &domain.Category{
+		ID:          id,
+		Name:        name,
+		Slug:        slug,
+		CreatedAt:   time.Unix(now, 0),
+	}, nil
 }
