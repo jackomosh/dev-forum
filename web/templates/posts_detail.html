@@ -41,28 +41,36 @@
       <div class="expert-interaction-toolbar">
         
         {{if .CurrentUser}}
-          <div class="vote-segmented-control">
-            <button class="expert-vote-btn expert-like-btn {{if eq .Post.UserVote 1}}active-voted-like{{end}}" aria-label="Like post">
+        <div class="vote-segmented-control">
+          <form action="/post/vote" method="POST" style="display:inline;">
+            <input type="hidden" name="post_id" value="{{.Post.Post.ID}}">
+            <input type="hidden" name="vote_val" value="1">
+            <button type="submit" class="expert-vote-btn expert-like-btn {{if eq .Post.UserVote 1}}active-voted-like{{end}}" aria-label="Like post">
               <span class="btn-icon">👍</span>
               <span class="vote-count">{{.Post.Stats.LikeCount}}</span>
             </button>
-            <button class="expert-vote-btn expert-dislike-btn {{if eq .Post.UserVote -1}}active-voted-dislike{{end}}" aria-label="Dislike post">
+          </form>
+          <form action="/post/vote" method="POST" style="display:inline;">
+            <input type="hidden" name="post_id" value="{{.Post.Post.ID}}">
+            <input type="hidden" name="vote_val" value="-1">
+            <button type="submit" class="expert-vote-btn expert-dislike-btn {{if eq .Post.UserVote -1}}active-voted-dislike{{end}}" aria-label="Dislike post">
               <span class="btn-icon">👎</span>
               <span class="vote-count">{{.Post.Stats.DislikeCount}}</span>
             </button>
-          </div>
-        {{else}}
-          <div class="vote-segmented-control disabled-control-group" title="Log in to react">
-            <span class="expert-vote-btn disabled-btn">
-              <span class="btn-icon">👍</span>
-              <span class="vote-count">{{.Post.Stats.LikeCount}}</span>
-            </span>
-            <span class="expert-vote-btn disabled-btn">
-              <span class="btn-icon">👎</span>
-              <span class="vote-count">{{.Post.Stats.DislikeCount}}</span>
-            </span>
-          </div>
-        {{end}}
+          </form>
+        </div>
+      {{else}}
+        <div class="vote-segmented-control disabled-control-group" title="Log in to react">
+          <span class="expert-vote-btn disabled-btn">
+            <span class="btn-icon">👍</span>
+            <span class="vote-count">{{.Post.Stats.LikeCount}}</span>
+          </span>
+          <span class="expert-vote-btn disabled-btn">
+            <span class="btn-icon">👎</span>
+            <span class="vote-count">{{.Post.Stats.DislikeCount}}</span>
+          </span>
+        </div>
+      {{end}}
 
         <span class="expert-comment-metric non-interactive-metric">
           <span class="btn-icon">💬</span>
