@@ -79,7 +79,7 @@ func (h *ForumHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/forgot-password", h.ForgotPassword)
 	// Likes and heartbreak votes
 	mux.HandleFunc("/post/vote", h.VotePost)
-	
+	mux.HandleFunc("/post/", h.PostDetail)
 }
 
 func (h *ForumHandler) Home(w http.ResponseWriter, r *http.Request) {
@@ -300,7 +300,12 @@ func (h *ForumHandler) CreateComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
+	// Redirect to the specified page, defaulting to dashboard
+	redirectTo := r.FormValue("redirect_to")
+	if redirectTo == "" {
+		redirectTo = "/dashboard"
+	}
+	http.Redirect(w, r, redirectTo, http.StatusSeeOther)
 }
 
 func (h *ForumHandler) Contact(w http.ResponseWriter, r *http.Request) {
@@ -465,6 +470,74 @@ func (h *ForumHandler) VotePost(w http.ResponseWriter, r *http.Request) {
 		referer = "/dashboard"
 	}
 	http.Redirect(w, r, referer, http.StatusSeeOther)
+}
+
+// PostDetail displays a single post with its comments.
+func (h *ForumHandler) PostDetail(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Extract post ID from URL path "/post/123"
+	path := strings.TrimPrefix(r.URL.Path, "/post/")
+	if path == "" {
+		http.NotFound(w, r)
+		return
+	}
+	id, err := strconv.ParseInt(path, 10, 64)
+	if err != nil || id <= 0 {
+		http.NotFound(w, r)
+		return
+	}
+	postID := domain.PostID(id)
+
+	ctx := r.Context()
+	user, err := h.currentUser(r)
+	if err != nil {
+		h.serverError(w, err)
+		return
+	}
+
+	// Fetch the post
+	post, err := h.repos.Posts().GetByID(ctx, postID)
+	if err != nil {
+		h.serverError(w, err)
+		return
+	}
+	if post == nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	// Fetch comments
+	comments, _, err := h.repos.Comments().GetByPostID(ctx, postID, 0, 0)
+	if err != nil {
+		h.serverError(w, err)
+		return
+	}
+
+	// Pass user's vote status if logged in
+	if user != nil {
+		vote, err := h.repos.Votes().GetVote(ctx, user.ID, domain.VoteTargetPost, int64(postID))
+		if err == nil && vote != nil {
+			post.UserVote = vote.Value
+		}
+	}
+
+	type DetailData struct {
+		BaseViewData
+		Post     domain.PostWithAuthor
+		Comments []domain.CommentWithAuthor
+	}
+
+	data := DetailData{
+		BaseViewData: BaseViewData{CurrentUser: user},
+		Post:         *post,
+		Comments:     comments,
+	}
+
+	h.renderer.Render(w, "posts_detail.html", data)
 }
 
 func (h *ForumHandler) handleLogin(w http.ResponseWriter, r *http.Request) {
