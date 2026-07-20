@@ -1,4 +1,4 @@
-{{define "title"}}{{.Post.Title}} — Dev Forum{{end}}
+{{define "title"}}{{.Post.Post.Title}} — Dev Forum{{end}}
 
 {{define "content"}}
 <div class="subforum-container stack-layout detail-view-layout">
@@ -9,69 +9,69 @@
     </a>
   </nav>
 
-  <article class="expert-post-card detailed-card" id="post-{{.Post.ID}}">
+  <article class="expert-post-card detailed-card" id="post-{{.Post.Post.ID}}">
     
     <header class="expert-post-header">
       <div class="expert-author-info">
         <div class="expert-author-avatar">
-          <span>{{slice .Post.AuthorName 0 1 | html}}</span>
+          <span>{{slice .Post.Author.Username 0 1 | html}}</span>
         </div>
         <div class="expert-meta-block">
-          <span class="expert-author-username">@{{.Post.AuthorName}}</span>
-          <span class="expert-post-date">Published on {{.Post.CreatedAt}}</span>
+          <span class="expert-author-username">@{{.Post.Author.Username}}</span>
+          <span class="expert-post-date">Published on {{.Post.Post.CreatedAt.Format "Jan 02, 2006"}}</span>
         </div>
       </div>
 
       <div class="expert-category-badges">
         {{range .Post.Categories}}
-          <span class="badge-subforum">{{.}}</span>
+          <span class="badge-subforum">{{.Name}}</span>
         {{end}}
       </div>
     </header>
 
     <div class="expert-post-body">
-      <h1 class="expert-post-title detailed-title">{{.Post.Title}}</h1>
+      <h1 class="expert-post-title detailed-title">{{.Post.Post.Title}}</h1>
       
       <div class="expert-post-paragraph detailed-body-content">
-        {{.Post.Body}}
+        {{.Post.Post.Body}}
       </div>
     </div>
 
     <div class="expert-post-footer detailed-footer">
       <div class="expert-interaction-toolbar">
         
-        {{if .User}}
+        {{if .CurrentUser}}
           <div class="vote-segmented-control">
-            <button class="expert-vote-btn expert-like-btn {{if eq .Post.UserVoted 1}}active-voted-like{{end}}" aria-label="Like post">
+            <button class="expert-vote-btn expert-like-btn {{if eq .Post.UserVote 1}}active-voted-like{{end}}" aria-label="Like post">
               <span class="btn-icon">👍</span>
-              <span class="vote-count">{{.Post.Likes}}</span>
+              <span class="vote-count">{{.Post.Stats.LikeCount}}</span>
             </button>
-            <button class="expert-vote-btn expert-dislike-btn {{if eq .Post.UserVoted -1}}active-voted-dislike{{end}}" aria-label="Dislike post">
+            <button class="expert-vote-btn expert-dislike-btn {{if eq .Post.UserVote -1}}active-voted-dislike{{end}}" aria-label="Dislike post">
               <span class="btn-icon">👎</span>
-              <span class="vote-count">{{.Post.Dislikes}}</span>
+              <span class="vote-count">{{.Post.Stats.DislikeCount}}</span>
             </button>
           </div>
         {{else}}
           <div class="vote-segmented-control disabled-control-group" title="Log in to react">
             <span class="expert-vote-btn disabled-btn">
               <span class="btn-icon">👍</span>
-              <span class="vote-count">{{.Post.Likes}}</span>
+              <span class="vote-count">{{.Post.Stats.LikeCount}}</span>
             </span>
             <span class="expert-vote-btn disabled-btn">
               <span class="btn-icon">👎</span>
-              <span class="vote-count">{{.Post.Dislikes}}</span>
+              <span class="vote-count">{{.Post.Stats.DislikeCount}}</span>
             </span>
           </div>
         {{end}}
 
         <span class="expert-comment-metric non-interactive-metric">
           <span class="btn-icon">💬</span>
-          <span class="comment-count">{{if .Post.Comments}}{{len .Post.Comments}}{{else}}0{{end}}</span> Technical Responses
+          <span class="comment-count">{{if .Comments}}{{len .Comments}}{{else}}0{{end}}</span> Technical Responses
         </span>
 
       </div>
       
-      {{if not .User}}
+      {{if not .CurrentUser}}
         <div class="guest-action-notice">
           <span>🔒 <a href="/login" class="inline-notice-link">Sign in</a> to join this discussion and vote.</span>
         </div>
@@ -79,19 +79,19 @@
     </div>
 
     <div class="expert-comments-wrapper static-comments-box">
-      <div class="comments-inner-header">Discussion Thread ({{if .Post.Comments}}{{len .Post.Comments}}{{else}}0{{end}})</div>
+      <div class="comments-inner-header">Discussion Thread ({{if .Comments}}{{len .Comments}}{{else}}0{{end}})</div>
       
       <div class="comments-timeline-stack">
-        {{if .Post.Comments}}
-          {{range .Post.Comments}}
+        {{if .Comments}}
+          {{range .Comments}}
             <div class="timeline-comment-card">
-              <div class="comment-card-avatar">{{slice .Author 0 1 | html}}</div>
+              <div class="comment-card-avatar">{{slice .Author.Username 0 1 | html}}</div>
               <div class="comment-card-body">
                 <div class="comment-card-top">
-                  <span class="comment-card-author">@{{.Author}}</span>
-                  <span class="comment-card-time">{{.CreatedAt}}</span>
+                  <span class="comment-card-author">@{{.Author.Username}}</span>
+                  <span class="comment-card-time">{{.Comment.CreatedAt.Format "Jan 02, 15:04"}}</span>
                 </div>
-                <p class="comment-card-paragraph">{{.Body}}</p>
+                <p class="comment-card-paragraph">{{.Comment.Body}}</p>
               </div>
             </div>
           {{end}}
@@ -100,10 +100,10 @@
         {{end}}
       </div>
 
-      {{if .User}}
+      {{if .CurrentUser}}
         <form class="expert-comment-form" action="/post/comment" method="POST">
-          <input type="hidden" name="post_id" value="{{.Post.ID}}">
-          <input type="hidden" name="redirect_to" value="/post/{{.Post.ID}}">
+          <input type="hidden" name="post_id" value="{{.Post.Post.ID}}">
+          <input type="hidden" name="redirect_to" value="/post/{{.Post.Post.ID}}">
           <input type="text" name="comment_body" placeholder="Write a highly technical feedback, suggest an optimization..." required class="expert-comment-input">
           <button type="submit" class="expert-comment-submit-btn">Send Comment</button>
         </form>
