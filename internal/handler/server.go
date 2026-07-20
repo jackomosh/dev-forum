@@ -77,6 +77,9 @@ func (h *ForumHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/register", h.Register)
 	mux.HandleFunc("/logout", h.Logout)
 	mux.HandleFunc("/forgot-password", h.ForgotPassword)
+	// Likes and heartbreak votes
+	mux.HandleFunc("/post/vote", h.VotePost)
+	
 }
 
 func (h *ForumHandler) Home(w http.ResponseWriter, r *http.Request) {
@@ -391,6 +394,77 @@ func (h *ForumHandler) ForgotPassword(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.renderAuth(w, r, "forgot-password.html", "")
+}
+
+// VotePost handles like/dislike votes on posts.
+func (h *ForumHandler) VotePost(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	user, ok := h.requireCurrentUser(w, r)
+	if !ok {
+		return
+	}
+
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+
+	postID, err := parseInt64FormValue[domain.PostID](r, "post_id")
+	if err != nil {
+		http.Error(w, "invalid post id", http.StatusBadRequest)
+		return
+	}
+
+	// Parse vote value manually (domain.VoteValue is int, not int64)
+	voteStr := strings.TrimSpace(r.FormValue("vote_val"))
+	rawVal, err := strconv.ParseInt(voteStr, 10, 64)
+	if err != nil || (rawVal != 1 && rawVal != -1) {
+		http.Error(w, "invalid vote value", http.StatusBadRequest)
+		return
+	}
+	voteVal := domain.VoteValue(rawVal)
+
+	ctx := r.Context()
+
+	// Check current vote
+	existing, err := h.repos.Votes().GetVote(ctx, user.ID, domain.VoteTargetPost, int64(postID))
+	if err != nil {
+		h.serverError(w, err)
+		return
+	}
+
+	if existing != nil && existing.Value == voteVal {
+		// Same vote -> remove it (toggle off)
+		if err := h.repos.Votes().RemoveVote(ctx, user.ID, domain.VoteTargetPost, int64(postID)); err != nil {
+			h.serverError(w, err)
+			return
+		}
+	} else {
+		// Add or update vote
+		vote := &domain.Vote{
+			UserID:    user.ID,
+			Target:    domain.VoteTargetPost,
+			TargetID:  int64(postID),
+			Value:     voteVal,
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		}
+		if err := h.repos.Votes().AddVote(ctx, vote); err != nil {
+			h.serverError(w, err)
+			return
+		}
+	}
+
+	// Redirect back to the referring page (or dashboard)
+	referer := r.Header.Get("Referer")
+	if referer == "" {
+		referer = "/dashboard"
+	}
+	http.Redirect(w, r, referer, http.StatusSeeOther)
 }
 
 func (h *ForumHandler) handleLogin(w http.ResponseWriter, r *http.Request) {

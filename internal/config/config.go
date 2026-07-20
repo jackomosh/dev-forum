@@ -47,14 +47,14 @@ type SecurityConfig struct {
 }
 
 func Default() Config {
-	port := getenv("FORUM_PORT", "8080")
+	port := getenv("FORUM_PORT", "8089")
 	databasePath := getenv("FORUM_DB_PATH", "forum.db")
 
 	return Config{
 		App: AppConfig{
 			Name:        "Dev Forum",
 			Environment: "development",
-			BaseURL:     "http://localhost:8080",
+			BaseURL:     "http://localhost:8089",
 		},
 		Server: ServerConfig{
 			Host:            "",
