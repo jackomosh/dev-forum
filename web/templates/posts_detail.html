@@ -113,6 +113,20 @@
                   <span class="comment-card-time">{{.Comment.CreatedAt.Format "Jan 02, 15:04"}}</span>
                 </div>
                 <p class="comment-card-paragraph">{{.Comment.Body}}</p>
+                {{if $.CurrentUser}}
+                <div class="comment-vote-actions">
+                  <form action="/comment/vote" method="POST" class="inline-vote-form">
+                    <input type="hidden" name="comment_id" value="{{.Comment.ID}}">
+                    <input type="hidden" name="vote_val" value="1">
+                    <button type="submit" class="vote-btn {{if eq .UserVote 1}}voted-active{{end}}">👍 {{.Stats.LikeCount}}</button>
+                  </form>
+                  <form action="/comment/vote" method="POST" class="inline-vote-form">
+                    <input type="hidden" name="comment_id" value="{{.Comment.ID}}">
+                    <input type="hidden" name="vote_val" value="-1">
+                    <button type="submit" class="vote-btn {{if eq .UserVote -1}}voted-active{{end}}">👎 {{.Stats.DislikeCount}}</button>
+                  </form>
+                </div>
+                {{end}}
               </div>
             </div>
           {{end}}
