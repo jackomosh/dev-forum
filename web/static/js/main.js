@@ -150,3 +150,21 @@ function insertHashtag() {
 function simulateAttachment() {
   alert("File attachment processing framework is available for authenticated high-karma authors.");
 }
+
+function togglePasswordVisibility(inputId, btn) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+
+  const eyeClosed = btn.querySelector('.eye-closed');
+  const eyeOpen = btn.querySelector('.eye-open');
+
+  if (input.type === 'password') {
+    input.type = 'text';
+    eyeClosed.classList.add('hidden');
+    eyeOpen.classList.remove('hidden');
+  } else {
+    input.type = 'password';
+    eyeClosed.classList.remove('hidden');
+    eyeOpen.classList.add('hidden');
+  }
+}
