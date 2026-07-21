@@ -785,6 +785,21 @@ body {
   color: #0f172a;
 }
 
+.disabled-vote-btn {
+  background-color: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  color: #94a3b8;
+  padding: 0.45rem 1rem;
+  border-radius: 30px;
+  cursor: not-allowed;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  opacity: 0.7;
+}
+
 /* Timelines and Comments Layout */
 .discussion-comments-timeline {
   display: none;

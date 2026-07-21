@@ -35,7 +35,9 @@ type ForumHandler struct {
 
 type StaticViewData struct {
 	BaseViewData
-	Categories []domain.Category
+	Categories    []domain.Category
+	FeaturedPost  *domain.PostWithAuthor
+	LatestPosts   []domain.PostWithAuthor
 }
 
 func NewForumHandler(repos repository.Repository, renderer *Renderer, opts Options) *ForumHandler {
@@ -95,8 +97,41 @@ func (h *ForumHandler) Home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	ctx := r.Context()
+	categories, err := h.repos.Categories().GetAll(ctx)
+	if err != nil {
+		h.serverError(w, err)
+		return
+	}
+
+	filter := domain.PostFilter{
+		Kind:      domain.PostFilterAll,
+		Sort:      domain.SortNewest,
+		Timeframe: domain.TimeframeAll,
+		Limit:     4,
+		Offset:    0,
+	}
+	posts, _, err := h.repos.Posts().List(ctx, filter)
+	if err != nil {
+		log.Printf("❌ Home list error: %v", err)
+		h.serverError(w, err)
+		return
+	}
+
+	var featured *domain.PostWithAuthor
+	var latest []domain.PostWithAuthor
+	if len(posts) > 0 {
+		featured = &posts[0]
+		if len(posts) > 1 {
+			latest = posts[1:]
+		}
+	}
+
 	h.renderer.Render(w, "index.html", StaticViewData{
 		BaseViewData: BaseViewData{CurrentUser: user},
+		Categories:   categories,
+		FeaturedPost: featured,
+		LatestPosts:  latest,
 	})
 }
 
