@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  forum:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: forum
+    ports:
+      - "8089:8089"
+    volumes:
+      - forum_data:/app/data
+    environment:
+      - FORUM_PORT=8089
+      - FORUM_DB_PATH=/app/data/forum.db
+    restart: unless-stopped
+
+volumes:
+  forum_data:
