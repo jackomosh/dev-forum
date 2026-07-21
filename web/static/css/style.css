@@ -200,11 +200,10 @@ body {
   box-sizing: border-box;
 }
 
-/* UPDATED CSS */
 .editorial-img, .featured-img-container img, .card-img-container img {
-  width: 100%;        /* Forces the image to fill the entire horizontal space of its box */
-  height: 100%;      /* Sets a standard uniform height for image zones */
-  object-fit: cover;  /* Automatically crops and crops/centers the image cleanly without stretching */
+  width: 100%;        
+  height: 100%;      
+  object-fit: cover;  
   display: block;
 }
 
@@ -276,6 +275,9 @@ body {
   font-weight: 300;
   color: #000000;
   margin: 0;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
 }
 
 /* Three Column Grid & Thoughts */
@@ -316,6 +318,9 @@ body {
 .card-heading {
   font-size: 20px;
   margin: 10px 0 14px 0;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
 }
 
 .card-heading a {
@@ -333,6 +338,9 @@ body {
   font-weight: 300;
   line-height: 1.6;
   margin: 0;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
 }
 
 .button-center-wrapper {
@@ -634,8 +642,8 @@ body {
   margin: 0 auto;
   padding: 2.5rem 1.5rem;
   box-sizing: border-box;
-  width: 100%;       /* Ensure wrapper doesn't push past viewport boundaries */
-  overflow: hidden;  /* Safety fallback wrapper containment */
+  width: 100%;       
+  overflow: hidden;  
 }
 
 .dashboard-sidebar {
@@ -709,8 +717,8 @@ body {
 /* Dashboard Feed Container & Filters Toolbar */
 .dashboard-feed-container {
   flex: 1;
-  min-width: 0;       /* Permits flex-child shrinking */
-  max-width: 100%;    /* Forces strict horizontal containment */
+  min-width: 0;       
+  max-width: 100%;    
 }
 
 .feed-filters-ribbon {
@@ -835,10 +843,10 @@ body {
   padding: 2rem;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.01);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
-  word-wrap: break-word;       /* Wrap unexpected long strings/URLs */
+  word-wrap: break-word;       
   word-break: break-word;
   overflow-wrap: break-word;
-  max-width: 100%;             /* Keep within feed container bounds */
+  max-width: 100%;             
   box-sizing: border-box;
 }
 
@@ -908,6 +916,9 @@ body {
 
 .expert-post-body {
   margin-bottom: 1.5rem;
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .expert-post-title {
@@ -937,7 +948,7 @@ body {
   word-wrap: break-word;
   word-break: break-word;
   overflow-wrap: break-word;
-  white-space: normal;         /* Prevents unformatted code blocks from forcing rows wide */
+  white-space: pre-wrap;         
 }
 
 /* Interaction Bar & Footers */
@@ -1224,6 +1235,9 @@ body {
   gap: 1rem;
   padding: 1rem 0;
   border-bottom: 1px solid #f1f5f9;
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .comment-card-avatar {
@@ -1244,6 +1258,10 @@ body {
 
 .comment-card-body {
   flex: 1;
+  min-width: 0;
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .comment-card-top {
@@ -1270,6 +1288,10 @@ body {
   line-height: 1.5;
   color: #334155;
   margin: 0 0 0.5rem 0;
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
 }
 
 .comment-vote-actions {
@@ -1313,6 +1335,10 @@ body {
   color: #0f172a;
   resize: vertical;
   transition: all 0.15s ease-in-out;
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
 }
 
 .comment-input-field-large:focus {
@@ -1362,6 +1388,7 @@ body {
   background-color: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
+  box-sizing: border-box;
 }
 
 .editor-header-banner {
@@ -1408,6 +1435,7 @@ body {
   border: 1px solid #e2e8f0;
   border-radius: 6px;
   font-size: 1rem;
+  box-sizing: border-box;
 }
 
 .category-selectors-grid {
@@ -1436,6 +1464,8 @@ body {
   border: 1px solid #e2e8f0;
   border-radius: 8px;
   overflow: hidden;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .processor-toolbar {
@@ -1474,6 +1504,23 @@ body {
   outline: none;
   background-color: #ffffff;
   border-top: none;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-y: auto;
+  overflow-x: hidden;
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+}
+
+.wysiwyg-content-area pre,
+.wysiwyg-content-area code {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
 }
 
 .wysiwyg-content-area:empty::before {
@@ -1596,6 +1643,9 @@ body {
 
 .text-area-input {
   resize: vertical;
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 /* Map Section */
@@ -1967,6 +2017,9 @@ body {
 /* Title & Post Body Content Spacing */
 .detailed-body-wrapper {
   margin-bottom: 2.5rem;
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .expert-post-title.detailed-title {
@@ -1975,6 +2028,9 @@ body {
   color: #0f172a;
   margin-top: 0;
   margin-bottom: 1.75rem;
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .expert-post-paragraph.detailed-body-content {
@@ -1982,6 +2038,10 @@ body {
   line-height: 1.8;
   color: #334155;
   margin-bottom: 2rem;
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
 }
 
 /* Interaction Bar / Footer */
@@ -2001,7 +2061,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  gap: 2rem; /* Generous space between votes and comment count */
+  gap: 2rem; 
   flex-wrap: wrap;
 }
 
@@ -2048,6 +2108,9 @@ body {
   padding: 1.25rem 1.5rem;
   border-radius: 12px;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .timeline-comment-card.animated-comment:hover {
@@ -2101,7 +2164,7 @@ body {
 .password-input-container .editorial-input {
   width: 100% !important;
   box-sizing: border-box;
-  padding-right: 2.75rem !important; /* Prevents text from slipping under the icon */
+  padding-right: 2.75rem !important; 
 }
 
 /* Float the toggle button inside the right edge of the input */
@@ -2119,7 +2182,7 @@ body {
   align-items: center;
   justify-content: center;
   color: #6b7280;
-  z-index: 2; /* Keeps icon clickable on top of input */
+  z-index: 2; 
 }
 
 .password-toggle-btn:hover {
@@ -2129,9 +2192,20 @@ body {
 .eye-icon {
   width: 1.25rem;
   height: 1.25rem;
-  pointer-events: none; /* Prevents click issues on SVG */
+  pointer-events: none; 
 }
 
 .hidden {
   display: none !important;
+}
+
+/* Restrict inserted images within feed post cards and detail views */
+.post-preview-body img,
+.expert-post-paragraph img,
+.wysiwyg-content-area img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  display: block;
+  margin: 1rem 0;
 }
