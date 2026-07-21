@@ -1,6 +1,9 @@
 package domain
 
-import "time"
+import (
+	"time"
+	"html/template"
+)
 
 type (
 	PostID     int64
@@ -93,3 +96,8 @@ const (
 	TimeframeWeekly  Timeframe = "weekly"
 	TimeframeMonthly Timeframe = "monthly"
 )
+
+
+func (p Post) FormattedBody() template.HTML {
+	return template.HTML(p.Body)
+}
