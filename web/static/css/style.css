@@ -636,6 +636,7 @@ body {
   box-sizing: border-box;
   width: 100%;       /* Ensure wrapper doesn't push past viewport boundaries */
   overflow: hidden;  /* Safety fallback wrapper containment */
+  flex-wrap: wrap;   /* Allow side panels to drop below feed when space is limited */
 }
 
 .dashboard-sidebar {
@@ -1260,6 +1261,8 @@ body {
 
 .comment-card-body {
   flex: 1;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .comment-card-top {
@@ -1368,8 +1371,15 @@ body {
   transform: scale(0.97);
 }
 
+.comment-vote-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  flex-wrap: wrap;
+}
+
 /* ==========================================================================
-   7. POST CREATOR EDITOR SYSTEM
+    7. POST CREATOR EDITOR SYSTEM
    ========================================================================== */
 .dashboard-editor-container {
   max-width: 900px;
@@ -1686,6 +1696,10 @@ body {
   color: #000000;
   display: flex;
   align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
   transition: transform 0.15s ease;
 }
 
