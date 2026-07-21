@@ -156,6 +156,18 @@ func (h *ForumHandler) Dashboard(w http.ResponseWriter, r *http.Request) {
 		activeFilter = ""
 	}
 
+	activeTimeframe := strings.TrimSpace(r.URL.Query().Get("timeframe"))
+	switch activeTimeframe {
+	case "daily":
+		filter.Timeframe = domain.TimeframeDaily
+	case "weekly":
+		filter.Timeframe = domain.TimeframeWeekly
+	case "monthly":
+		filter.Timeframe = domain.TimeframeMonthly
+	default:
+		filter.Timeframe = domain.TimeframeAll
+	}
+
 	posts, _, err := h.repos.Posts().List(ctx, filter)
 	if err != nil {
 		h.serverError(w, err)
@@ -183,6 +195,7 @@ func (h *ForumHandler) Dashboard(w http.ResponseWriter, r *http.Request) {
 		Filter:       filter,
 		ActiveCat:    activeCategory,
 		ActiveFilter: activeFilter,
+		ActiveTimeframe: activeTimeframe, 
 	})
 }
 

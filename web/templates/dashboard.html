@@ -52,6 +52,14 @@
   <!-- Main Content Feed (Spaced Box Stream) -->
   <main class="dashboard-feed-container">
     
+    <div class="feed-filters-ribbon">
+      <div class="ribbon-scroll-container">
+        <a href="/dashboard" class="ribbon-tab {{if eq .ActiveTimeframe ""}}active{{end}}">🌐 All</a>
+        <a href="/dashboard?timeframe=daily" class="ribbon-tab {{if eq .ActiveTimeframe "daily"}}active{{end}}">Today</a>
+        <a href="/dashboard?timeframe=weekly" class="ribbon-tab {{if eq .ActiveTimeframe "weekly"}}active{{end}}">This Week</a>
+        <a href="/dashboard?timeframe=monthly" class="ribbon-tab {{if eq .ActiveTimeframe "monthly"}}active{{end}}">This Month</a>
+      </div>
+    </div>
     <div class="dashboard-toolbar-ribbon">
       <div class="toolbar-left-filters">
         <a href="/dashboard?sort=newest" class="toolbar-filter-btn {{if eq .Filter.Sort "newest"}}active{{end}}">
