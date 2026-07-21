@@ -38,6 +38,15 @@ document.addEventListener("DOMContentLoaded", () => {
       hiddenBodyInput.value = contents;
     });
   }
+
+  // Handle Clipboard Pastes cleanly into standard formatting layout
+  if (wysiwygEditor) {
+    wysiwygEditor.addEventListener('paste', function(e) {
+      e.preventDefault();
+      const text = (e.clipboardData || window.clipboardData).getData('text/plain');
+      document.execCommand('insertText', false, text);
+    });
+  }
 });
 
 // --- Workspace Toggle Suite (Edit vs Live Preview Sandbox Views) ---
@@ -107,7 +116,6 @@ function formatSize(size) {
   const editor = document.getElementById("editor-wysiwyg");
   if (editor) {
     editor.focus();
-    // Translate numeric choices securely to standard font scaling factors
     document.execCommand('fontSize', false, size);
   }
 }
@@ -135,13 +143,11 @@ function toggleEmojiPicker() {
   }
 }
 
-// Fixed parameter ingestion loop to match manual string bindings
 function insertEmoji(emoji) {
   formatDoc("insertHTML", emoji);
   toggleEmojiPicker();
 }
 
-// Generates dynamic raw structural inline micro-elements safely
 function insertHashtag() {
   const tag = prompt("Specify custom index target tag term without standard hash characters:");
   if (tag) formatDoc("insertHTML", ` <span class='badge-subforum'>#${tag.trim()}</span> `);
