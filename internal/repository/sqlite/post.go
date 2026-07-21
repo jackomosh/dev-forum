@@ -4,9 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log"
 	"strings"
 	"time"
-	"log"
 
 	"forum/internal/domain"
 	"forum/internal/repository"

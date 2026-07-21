@@ -35,7 +35,9 @@ type ForumHandler struct {
 
 type StaticViewData struct {
 	BaseViewData
-	Categories []domain.Category
+	Categories   []domain.Category
+	FeaturedPost *domain.PostWithAuthor
+	LatestPosts  []domain.PostWithAuthor
 }
 
 func NewForumHandler(repos repository.Repository, renderer *Renderer, opts Options) *ForumHandler {
@@ -67,6 +69,7 @@ func NewForumHandler(repos repository.Repository, renderer *Renderer, opts Optio
 
 func (h *ForumHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/", h.Home)
+	mux.HandleFunc("/about", h.About)
 	mux.HandleFunc("/dashboard", h.Dashboard)
 	mux.HandleFunc("/posts", h.PostsRedirect)
 	mux.HandleFunc("/post/create", h.CreatePost)
@@ -95,12 +98,62 @@ func (h *ForumHandler) Home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.renderer.Render(w, "index.html", StaticViewData{
-		BaseViewData: BaseViewData{CurrentUser: user},
-	})
-}
+	ctx := r.Context()
+	categories, err := h.repos.Categories().GetAll(ctx)
+	if err != nil {
+		h.serverError(w, err)
+		return
+	}
 
-func (h *ForumHandler) Dashboard(w http.ResponseWriter, r *http.Request) {
+	filter := domain.PostFilter{
+		Kind:      domain.PostFilterAll,
+		Sort:      domain.SortNewest,
+		Timeframe: domain.TimeframeAll,
+		Limit:     4,
+		Offset:    0,
+	}
+	posts, _, err := h.repos.Posts().List(ctx, filter)
+	if err != nil {
+		log.Printf("❌ Home list error: %v", err)
+		h.serverError(w, err)
+		return
+	}
+
+	var featured *domain.PostWithAuthor
+	var latest []domain.PostWithAuthor
+	if len(posts) > 0 {
+		featured = &posts[0]
+		if len(posts) > 1 {
+			latest = posts[1:]
+		}
+	}
+
+ 	h.renderer.Render(w, "index.html", StaticViewData{
+ 		BaseViewData: BaseViewData{CurrentUser: user},
+ 		Categories:   categories,
+ 		FeaturedPost: featured,
+ 		LatestPosts:  latest,
+ 	})
+ }
+
+ func (h *ForumHandler) About(w http.ResponseWriter, r *http.Request) {
+ 	if r.Method != http.MethodGet {
+ 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+ 		return
+ 	}
+
+ 	user, err := h.currentUser(r)
+ 	if err != nil {
+ 		h.serverError(w, err)
+ 		return
+ 	}
+
+ 	h.renderer.Render(w, "about.html", StaticViewData{
+ 		BaseViewData: BaseViewData{CurrentUser: user},
+ 	})
+ }
+
+ func (h *ForumHandler) Dashboard(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		return

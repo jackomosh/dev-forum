@@ -116,6 +116,7 @@
             <div class="expert-post-footer">
               <div class="expert-interaction-row">
                 
+                {{if $.CurrentUser}}
                 <div class="vote-widget-container">
                   <!-- Like form -->
                   <form action="/post/vote" method="POST" class="inline-vote-form">
@@ -137,9 +138,21 @@
                     </button>
                   </form>
                 </div>
+                {{else}}
+                <div class="vote-widget-container">
+                  <span class="vote-btn disabled-vote-btn" title="Log in to react">
+                    <span class="action-icon">❤️</span>
+                    <span class="vote-count-label">{{.Post.Stats.LikeCount}}</span>
+                  </span>
+                  <span class="vote-btn disabled-vote-btn" title="Log in to react">
+                    <span class="action-icon">💔</span>
+                    <span class="vote-count-label">{{.Post.Stats.DislikeCount}}</span>
+                  </span>
+                </div>
+                {{end}}
 
                 <button class="comments-counter-badge" onclick="document.getElementById('comments-timeline-{{.Post.Post.ID}}').classList.toggle('active-visible')">
-                  💬 <span class="comment-count-label">{{if .Comments}}{{len .Comments}}{{else}}0{{end}}</span> Comments
+                  💬 + <span class="comment-count-label">{{if .Comments}}{{len .Comments}}{{else}}0{{end}}</span> Comments
                 </button>
               </div>
             </div>
@@ -160,6 +173,7 @@
                           <span class="comment-card-time">{{.Comment.CreatedAt.Format "Jan 02, 15:04"}}</span>
                         </div>
                         <p class="comment-card-paragraph">{{.Comment.Body}}</p>
+                        {{if $.CurrentUser}}
                         <div class="comment-vote-actions">
                           <form action="/comment/vote" method="POST" class="inline-vote-form">
                             <input type="hidden" name="comment_id" value="{{.Comment.ID}}">
@@ -172,6 +186,7 @@
                             <button type="submit" class="vote-btn {{if eq .UserVote -1}}voted-active{{end}}">👎 {{.Stats.DislikeCount}}</button>
                           </form>
                         </div>
+                        {{end}}
                       </div>
                     </div>
                   {{end}}
@@ -200,12 +215,11 @@
 
   <!-- Right Panel Widgets -->
   <aside class="dashboard-right-panel">
+    {{if .CurrentUser}}
     <div class="sidebar-block shadow-card">
       <h3 class="sidebar-heading">Your Performance</h3>
       <div class="user-profile-widget">
-        {{if .CurrentUser}}
         <p class="user-role-badge">Level: <strong>{{.CurrentUser.Role}}</strong></p>
-        {{end}}
         <div class="stat-row">
           <span>Created Threads</span>
           <strong>{{len .Posts}}</strong>
@@ -216,6 +230,7 @@
         </div>
       </div>
     </div>
+    {{end}}
 
     <div class="sidebar-block shadow-card">
       <h3 class="sidebar-heading">Online Developers</h3>
