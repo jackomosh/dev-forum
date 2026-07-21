@@ -307,3 +307,30 @@ Both commands completed successfully, and the new regression test passed.
 - Add CSRF protection for state-changing forms.
 - Improve validation and error feedback for post creation.
 - Continue polishing the dashboard and post creation experience.
+
+## Day 6 - Dockerize Go Forum Application
+
+**Date:** 2026-07-21
+**Author:** [Bramwel Mutugi](https://learn.zone01kisumu.ke/git/mumutugi)
+**Branch:** feat/dockerfile
+
+### Goal
+Containerize the Go forum application using Docker to ensure consistent environment configuration, static asset serving, and SQLite database persistence.
+
+### Implementation
+- **Created Multi-Stage Dockerfile:** Built the application binary inside a Go Alpine builder image and copied only the binary, web assets (`/web`), and database schema (`schema.sql`) into a minimal Alpine production image to keep the image lightweight (~23MB).
+- **Configured CGO for SQLite Support:** Installed build tools (`gcc`, `musl-dev`) and enabled CGO (`CGO_ENABLED=1`) in the builder stage to support the `mattn/go-sqlite3` driver.
+- **Static & Template Handling:** Set up proper relative paths for static files and HTML templates (`./web`) and initial database migrations (`schema.sql`).
+- **Network Exposure:** Exposed port `8089` for local development access.
+
+### Verification
+- Built the image using `docker build -t dev-forum-go .`.
+- Cleared container name conflicts and verified port binding on `8089`.
+- Verified application container status using `docker ps` to ensure stability and proper health status (`Up X seconds`).
+- Executed `docker logs dev-forum` to confirm database initialization without runtime errors.
+- Verified web interface accessibility locally at `http://localhost:8089`.
+
+### Next Steps
+- Implement Docker volume mounting (`-v`) for `forum.db` to ensure SQLite data persists across container recreations.
+- Add a `.dockerignore` file to prevent copying local development artifacts or databases into the build context.
+- Create a `docker-compose.yml` file to simplify environment configurations and port management.
