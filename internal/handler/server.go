@@ -244,6 +244,16 @@ func (h *ForumHandler) Home(w http.ResponseWriter, r *http.Request) {
 			Post:     post,
 			Comments: comments,
 		})
+
+		// Pass user's vote status for each comment if logged in
+		if user != nil {
+			for i := range comments {
+				vote, err := h.repos.Votes().GetVote(ctx, user.ID, domain.VoteTargetComment, int64(comments[i].Comment.ID))
+				if err == nil && vote != nil {
+					comments[i].UserVote = vote.Value
+				}
+			}
+		}
 	}
 
 	h.renderer.Render(w, "dashboard.html", PostListViewData{
@@ -593,6 +603,16 @@ func (h *ForumHandler) PostDetail(w http.ResponseWriter, r *http.Request) {
 		vote, err := h.repos.Votes().GetVote(ctx, user.ID, domain.VoteTargetPost, int64(postID))
 		if err == nil && vote != nil {
 			post.UserVote = vote.Value
+		}
+	}
+
+	// Pass user's vote status for each comment if logged in
+	if user != nil {
+		for i := range comments {
+			vote, err := h.repos.Votes().GetVote(ctx, user.ID, domain.VoteTargetComment, int64(comments[i].Comment.ID))
+			if err == nil && vote != nil {
+				comments[i].UserVote = vote.Value
+			}
 		}
 	}
 

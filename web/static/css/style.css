@@ -1261,6 +1261,8 @@ body {
 
 .comment-card-body {
   flex: 1;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .comment-card-top {
@@ -1369,8 +1371,15 @@ body {
   transform: scale(0.97);
 }
 
+.comment-vote-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  flex-wrap: wrap;
+}
+
 /* ==========================================================================
-   7. POST CREATOR EDITOR SYSTEM
+    7. POST CREATOR EDITOR SYSTEM
    ========================================================================== */
 .dashboard-editor-container {
   max-width: 900px;
