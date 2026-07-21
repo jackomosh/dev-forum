@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"log"
 
 	"forum/internal/domain"
 	"forum/internal/repository"
@@ -233,6 +234,23 @@ func (r *PostRepository) List(ctx context.Context, filter domain.PostFilter) ([]
 		args = append(args, searchPattern, searchPattern)
 	}
 
+	// Apply timeframe filter
+	if filter.Timeframe != domain.TimeframeAll {
+		var cutoff time.Time
+		switch filter.Timeframe {
+		case domain.TimeframeDaily:
+			cutoff = time.Now().Add(-24 * time.Hour)
+		case domain.TimeframeWeekly:
+			cutoff = time.Now().Add(-7 * 24 * time.Hour)
+		case domain.TimeframeMonthly:
+			cutoff = time.Now().Add(-30 * 24 * time.Hour)
+		default:
+			cutoff = time.Now().Add(-24 * time.Hour) // fallback
+		}
+		conditions = append(conditions, "p.created_at >= ?")
+		args = append(args, cutoff.Unix())
+	}
+
 	whereClause := ""
 	if len(conditions) > 0 {
 		whereClause = "WHERE " + strings.Join(conditions, " AND ")
@@ -303,10 +321,13 @@ func (r *PostRepository) List(ctx context.Context, filter domain.PostFilter) ([]
 	queryArgs = append(queryArgs, filter.ViewerID)
 	queryArgs = append(queryArgs, args...)
 	queryArgs = append(queryArgs, limit, offset)
+	log.Printf("🔍 SQL: %s", query)
+	log.Printf("🔍 Args: %+v", queryArgs)
 	rows, err := r.client.db.QueryContext(ctx, query, queryArgs...)
 	if err != nil {
 		return nil, 0, fmt.Errorf("list posts: %w", err)
 	}
+	log.Printf("📈 Total count: %d", total)
 	defer rows.Close()
 
 	var posts []domain.PostWithAuthor

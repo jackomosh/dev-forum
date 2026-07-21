@@ -25,6 +25,7 @@ type PostListViewData struct {
 	Filter       domain.PostFilter
 	ActiveCat    string
 	ActiveFilter string
+	ActiveTimeframe string
 }
 
 type CreatePostViewData struct {

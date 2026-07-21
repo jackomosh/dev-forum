@@ -2,8 +2,10 @@ package domain
 
 import "time"
 
-type PostID int64
-type CategoryID int64
+type (
+	PostID     int64
+	CategoryID int64
+)
 
 type PostStatus string
 
@@ -60,6 +62,7 @@ type PostFilter struct {
 	Kind       PostFilterKind
 	Search     string
 	Sort       SortOrder
+	Timeframe  Timeframe
 	Limit      int
 	Offset     int
 }
@@ -80,4 +83,13 @@ const (
 	SortOldest      SortOrder = "oldest"
 	SortMostLiked   SortOrder = "most_liked"
 	SortMostComment SortOrder = "most_commented"
+)
+
+type Timeframe string
+
+const (
+	TimeframeAll     Timeframe = "all"
+	TimeframeDaily   Timeframe = "daily"
+	TimeframeWeekly  Timeframe = "weekly"
+	TimeframeMonthly Timeframe = "monthly"
 )

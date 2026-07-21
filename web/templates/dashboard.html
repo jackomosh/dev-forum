@@ -49,20 +49,32 @@
     </div>
   </aside>
 
-  <!-- Main Content Feed (Spaced Box Stream) -->
+  <!-- Main Content Feed -->
   <main class="dashboard-feed-container">
     
+    <!-- Time‑based filter ribbon -->
+    <div class="feed-filters-ribbon">
+      <div class="ribbon-scroll-container">
+        <a href="/dashboard" class="ribbon-tab {{if eq .ActiveTimeframe ""}}active{{end}}">🌐 All</a>
+        <a href="/dashboard?timeframe=daily" class="ribbon-tab {{if eq .ActiveTimeframe "daily"}}active{{end}}">Today</a>
+        <a href="/dashboard?timeframe=weekly" class="ribbon-tab {{if eq .ActiveTimeframe "weekly"}}active{{end}}">This Week</a>
+        <a href="/dashboard?timeframe=monthly" class="ribbon-tab {{if eq .ActiveTimeframe "monthly"}}active{{end}}">This Month</a>
+      </div>
+    </div>
+
+    <!-- Sort toolbar -->
     <div class="dashboard-toolbar-ribbon">
       <div class="toolbar-left-filters">
         <a href="/dashboard?sort=newest" class="toolbar-filter-btn {{if eq .Filter.Sort "newest"}}active{{end}}">
           <span class="icon">🕒</span> Latest Threads
         </a>
-        <a href="/dashboard?sort=top" class="toolbar-filter-btn {{if eq .Filter.Sort "top"}}active{{end}}">
+        <a href="/dashboard?sort=most_liked" class="toolbar-filter-btn {{if eq .Filter.Sort "most_liked"}}active{{end}}">
           <span class="icon">🔥</span> Top Discussions
         </a>
       </div>
     </div>
 
+    <!-- Posts stream -->
     <div class="posts-stream">
       {{if not .Posts}}
         <div class="empty-feed-placeholder">
@@ -99,14 +111,13 @@
               <div class="expert-post-paragraph">
                 {{.Post.Post.Body}}
               </div>
-            </div><br>
+            </div>
 
-            <!-- Footer Interactions (Red Hearts / Broken Hearts) -->
             <div class="expert-post-footer">
               <div class="expert-interaction-row">
                 
                 <div class="vote-widget-container">
-                  <!-- Red/White Heart Like -->
+                  <!-- Like form -->
                   <form action="/post/vote" method="POST" class="inline-vote-form">
                     <input type="hidden" name="post_id" value="{{.Post.Post.ID}}">
                     <input type="hidden" name="vote_val" value="1">
@@ -116,7 +127,7 @@
                     </button>
                   </form>
 
-                  <!-- Broken Heart Dislike -->
+                  <!-- Dislike form -->
                   <form action="/post/vote" method="POST" class="inline-vote-form">
                     <input type="hidden" name="post_id" value="{{.Post.Post.ID}}">
                     <input type="hidden" name="vote_val" value="-1">
@@ -125,8 +136,8 @@
                       <span class="vote-count-label">{{.Post.Stats.DislikeCount}}</span>
                     </button>
                   </form>
-                </div><br>
-                
+                </div>
+
                 <button class="comments-counter-badge" onclick="document.getElementById('comments-timeline-{{.Post.Post.ID}}').classList.toggle('active-visible')">
                   💬 <span class="comment-count-label">{{if .Comments}}{{len .Comments}}{{else}}0{{end}}</span> Comments
                 </button>
@@ -157,14 +168,12 @@
                 {{end}}
               </div>
 
-              <!-- Refactored Comment Input Form (Large Textarea & Bottom Button) -->
+              <!-- Comment form -->
               <form class="comment-input-form" action="/post/comment" method="POST">
                 <input type="hidden" name="post_id" value="{{.Post.Post.ID}}">
-                
                 <div class="textarea-container">
                   <textarea name="comment_body" placeholder="Write standard feedback, code reviews or follow-up questions..." required class="comment-input-field-large" rows="3"></textarea>
                 </div>
-
                 <div class="comment-form-footer">
                   <button type="submit" class="btn-comment-submit-round">Add Comment</button>
                 </div>

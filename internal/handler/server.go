@@ -122,10 +122,11 @@ func (h *ForumHandler) Dashboard(w http.ResponseWriter, r *http.Request) {
 	activeFilter := strings.TrimSpace(r.URL.Query().Get("filter"))
 
 	filter := domain.PostFilter{
-		Kind:   domain.PostFilterAll,
-		Sort:   domain.SortNewest,
-		Limit:  20,
-		Offset: 0,
+		Kind:      domain.PostFilterAll,
+		Sort:      domain.SortNewest,
+		Timeframe: domain.TimeframeAll,
+		Limit:     20,
+		Offset:    0,
 	}
 	if user != nil {
 		filter.ViewerID = user.ID
@@ -156,11 +157,26 @@ func (h *ForumHandler) Dashboard(w http.ResponseWriter, r *http.Request) {
 		activeFilter = ""
 	}
 
-	posts, _, err := h.repos.Posts().List(ctx, filter)
+	// Parse timeframe
+	activeTimeframe := strings.TrimSpace(r.URL.Query().Get("timeframe"))
+	switch activeTimeframe {
+	case "daily":
+		filter.Timeframe = domain.TimeframeDaily
+	case "weekly":
+		filter.Timeframe = domain.TimeframeWeekly
+	case "monthly":
+		filter.Timeframe = domain.TimeframeMonthly
+	default:
+		filter.Timeframe = domain.TimeframeAll
+	}
+
+	posts, total, err := h.repos.Posts().List(ctx, filter)
 	if err != nil {
+		log.Printf("❌ List error: %v", err)
 		h.serverError(w, err)
 		return
 	}
+	log.Printf("📊 List returned %d posts (total %d)", len(posts), total)
 
 	items := make([]PostListItem, 0, len(posts))
 	for _, post := range posts {
@@ -177,12 +193,13 @@ func (h *ForumHandler) Dashboard(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.renderer.Render(w, "dashboard.html", PostListViewData{
-		BaseViewData: BaseViewData{CurrentUser: user},
-		Posts:        items,
-		Categories:   categories,
-		Filter:       filter,
-		ActiveCat:    activeCategory,
-		ActiveFilter: activeFilter,
+		BaseViewData:    BaseViewData{CurrentUser: user},
+		Posts:           items,
+		Categories:      categories,
+		Filter:          filter,
+		ActiveCat:       activeCategory,
+		ActiveFilter:    activeFilter,
+		ActiveTimeframe: activeTimeframe,
 	})
 }
 
