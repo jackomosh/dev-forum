@@ -638,6 +638,7 @@ body {
   box-sizing: border-box;
   width: 100%;       /* Ensure wrapper doesn't push past viewport boundaries */
   overflow: hidden;  /* Safety fallback wrapper containment */
+  flex-wrap: wrap;   /* Allow side panels to drop below feed when space is limited */
 }
 
 .dashboard-sidebar {
@@ -1245,6 +1246,10 @@ body {
   color: #000000;
   display: flex;
   align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
   transition: transform 0.15s ease;
 }
 
