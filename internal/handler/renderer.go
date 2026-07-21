@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"bytes"
 	"html/template"
 	"log"
 	"net/http"
@@ -28,8 +29,14 @@ func (r *Renderer) Render(w http.ResponseWriter, tmpl string, data interface{}) 
 		return
 	}
 
-	if err := t.ExecuteTemplate(w, "base", data); err != nil {
+	// Buffer output to catch execution errors before writing headers to ResponseWriter
+	var buf bytes.Buffer
+	if err := t.ExecuteTemplate(&buf, "base", data); err != nil {
 		log.Printf("template execute error: %v", err)
 		http.Error(w, "failed to render template", http.StatusInternalServerError)
+		return
 	}
+
+	// Output buffer contents upon successful rendering
+	_, _ = buf.WriteTo(w)
 }

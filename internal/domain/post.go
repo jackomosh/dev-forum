@@ -1,6 +1,9 @@
 package domain
 
-import "time"
+import (
+	"time"
+	"html/template"
+)
 
 type (
 	PostID     int64
@@ -31,6 +34,11 @@ type Post struct {
 	Status    PostStatus
 	CreatedAt time.Time
 	UpdatedAt time.Time
+}
+
+// FormattedBody converts raw string Body into safe template.HTML for unescaped rendering.
+func (p Post) FormattedBody() template.HTML {
+	return template.HTML(p.Body)
 }
 
 type PostWithAuthor struct {

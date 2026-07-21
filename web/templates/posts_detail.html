@@ -112,6 +112,9 @@
                   <span class="comment-card-author">@{{.Author.Username}}</span>
                   <span class="comment-card-time">{{.Comment.CreatedAt.Format "Jan 02, 15:04"}}</span>
                 </div>
+<<<<<<< HEAD
+                <p class="comment-card-paragraph">{{.Comment.FormattedBody}}</p>
+=======
                 <p class="comment-card-paragraph">{{.Comment.Body}}</p>
                 {{if $.CurrentUser}}
                 <div class="comment-vote-actions">
@@ -127,6 +130,10 @@
                   </form>
                 </div>
                 {{end}}
+<<<<<<< HEAD
+=======
+>>>>>>> docker
+>>>>>>> faf71abef1c8057cae66a9178bc1e8b25aa1a376
               </div>
             </div>
           {{end}}

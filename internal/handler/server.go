@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
+	// "html"
 	"io"
 	"log"
 	"net/http"
@@ -71,6 +72,7 @@ func (h *ForumHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/", h.Home)
 	mux.HandleFunc("/about", h.About)
 	mux.HandleFunc("/dashboard", h.Dashboard)
+	mux.HandleFunc("/about", h.About)
 	mux.HandleFunc("/posts", h.PostsRedirect)
 	mux.HandleFunc("/post/create", h.CreatePost)
 	mux.HandleFunc("/post/comment", h.CreateComment)
@@ -505,7 +507,6 @@ func (h *ForumHandler) VotePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Parse vote value manually (domain.VoteValue is int, not int64)
 	voteStr := strings.TrimSpace(r.FormValue("vote_val"))
 	rawVal, err := strconv.ParseInt(voteStr, 10, 64)
 	if err != nil || (rawVal != 1 && rawVal != -1) {
@@ -516,7 +517,6 @@ func (h *ForumHandler) VotePost(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 
-	// Check current vote
 	existing, err := h.repos.Votes().GetVote(ctx, user.ID, domain.VoteTargetPost, int64(postID))
 	if err != nil {
 		h.serverError(w, err)
@@ -524,13 +524,11 @@ func (h *ForumHandler) VotePost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if existing != nil && existing.Value == voteVal {
-		// Same vote -> remove it (toggle off)
 		if err := h.repos.Votes().RemoveVote(ctx, user.ID, domain.VoteTargetPost, int64(postID)); err != nil {
 			h.serverError(w, err)
 			return
 		}
 	} else {
-		// Add or update vote
 		vote := &domain.Vote{
 			UserID:    user.ID,
 			Target:    domain.VoteTargetPost,
@@ -545,7 +543,6 @@ func (h *ForumHandler) VotePost(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Redirect back to the referring page (or dashboard)
 	referer := r.Header.Get("Referer")
 	if referer == "" {
 		referer = "/dashboard"
@@ -560,7 +557,6 @@ func (h *ForumHandler) PostDetail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Extract post ID from URL path "/post/123"
 	path := strings.TrimPrefix(r.URL.Path, "/post/")
 	if path == "" {
 		http.NotFound(w, r)
@@ -580,7 +576,6 @@ func (h *ForumHandler) PostDetail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Fetch the post
 	post, err := h.repos.Posts().GetByID(ctx, postID)
 	if err != nil {
 		h.serverError(w, err)
@@ -591,14 +586,12 @@ func (h *ForumHandler) PostDetail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Fetch comments
 	comments, _, err := h.repos.Comments().GetByPostID(ctx, postID, 0, 0)
 	if err != nil {
 		h.serverError(w, err)
 		return
 	}
 
-	// Pass user's vote status if logged in
 	if user != nil {
 		vote, err := h.repos.Votes().GetVote(ctx, user.ID, domain.VoteTargetPost, int64(postID))
 		if err == nil && vote != nil {
@@ -616,13 +609,17 @@ func (h *ForumHandler) PostDetail(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	type DetailData struct {
-		BaseViewData
-		Post     domain.PostWithAuthor
-		Comments []domain.CommentWithAuthor
+	// Pass user's vote status for each comment if logged in
+	if user != nil {
+		for i := range comments {
+			vote, err := h.repos.Votes().GetVote(ctx, user.ID, domain.VoteTargetComment, int64(comments[i].Comment.ID))
+			if err == nil && vote != nil {
+				comments[i].UserVote = vote.Value
+			}
+		}
 	}
 
-	data := DetailData{
+	data := PostDetailViewData{
 		BaseViewData: BaseViewData{CurrentUser: user},
 		Post:         *post,
 		Comments:     comments,
@@ -654,7 +651,6 @@ func (h *ForumHandler) CommentVote(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Parse vote value
 	voteStr := strings.TrimSpace(r.FormValue("vote_val"))
 	rawVal, err := strconv.ParseInt(voteStr, 10, 64)
 	if err != nil || (rawVal != 1 && rawVal != -1) {
@@ -665,7 +661,6 @@ func (h *ForumHandler) CommentVote(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 
-	// Check existing vote
 	existing, err := h.repos.Votes().GetVote(ctx, user.ID, domain.VoteTargetComment, int64(commentID))
 	if err != nil {
 		h.serverError(w, err)
@@ -673,13 +668,11 @@ func (h *ForumHandler) CommentVote(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if existing != nil && existing.Value == voteVal {
-		// Same vote – remove it (toggle off)
 		if err := h.repos.Votes().RemoveVote(ctx, user.ID, domain.VoteTargetComment, int64(commentID)); err != nil {
 			h.serverError(w, err)
 			return
 		}
 	} else {
-		// Add or update vote
 		vote := &domain.Vote{
 			UserID:    user.ID,
 			Target:    domain.VoteTargetComment,
@@ -694,7 +687,6 @@ func (h *ForumHandler) CommentVote(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Redirect back to the referring page
 	referer := r.Header.Get("Referer")
 	if referer == "" {
 		referer = "/dashboard"
@@ -822,10 +814,13 @@ func (h *ForumHandler) renderAuthWithForm(w http.ResponseWriter, r *http.Request
 
 func (h *ForumHandler) parsePostForm(r *http.Request) (PostForm, error) {
 	title := strings.TrimSpace(r.FormValue("title"))
-	body := strings.TrimSpace(r.FormValue("body"))
-	if title == "" || body == "" {
+	rawBody := strings.TrimSpace(r.FormValue("body"))
+	if title == "" || rawBody == "" {
 		return PostForm{}, fmt.Errorf("title and body are required")
 	}
+
+	// Preserve formatted HTML from the frontend editor directly
+	sanitizedBody := rawBody
 
 	var categoryIDs []domain.CategoryID
 	for _, rawID := range r.Form["categories"] {
@@ -848,7 +843,7 @@ func (h *ForumHandler) parsePostForm(r *http.Request) (PostForm, error) {
 
 	return PostForm{
 		Title:       title,
-		Body:        body,
+		Body:        sanitizedBody,
 		CategoryIDs: categoryIDs,
 	}, nil
 }
@@ -1003,4 +998,22 @@ func parseInt64FormValue[T signedInteger](r *http.Request, key string) (T, error
 		return 0, fmt.Errorf("invalid %s", key)
 	}
 	return T(value), nil
+}
+
+// About renders the static about page.
+func (h *ForumHandler) About(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	user, err := h.currentUser(r)
+	if err != nil {
+		h.serverError(w, err)
+		return
+	}
+
+	h.renderer.Render(w, "about.html", StaticViewData{
+		BaseViewData: BaseViewData{CurrentUser: user},
+	})
 }
