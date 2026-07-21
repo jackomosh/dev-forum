@@ -1444,3 +1444,133 @@ body {
     padding-right: 0.25rem;
   }
 }
+
+/* ==========================================================================
+   11. ABOUT PAGE
+   ========================================================================== */
+.about-page-container {
+  width: 100%;
+}
+
+.about-hero-block {
+  padding: 100px 0 80px 0;
+}
+
+.about-hero-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+}
+
+.about-hero-text {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.about-hero-heading {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 42px;
+  font-weight: 700;
+  line-height: 1.15;
+  margin: 0;
+}
+
+.about-hero-paragraph {
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  line-height: 1.7;
+  font-weight: 300;
+  margin: 0;
+}
+
+.about-hero-image {
+  border: 1px solid #000000;
+}
+
+.about-values-block {
+  padding: 80px 0;
+}
+
+.about-values-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30px;
+}
+
+.about-value-card {
+  border: 1px solid #000000;
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.about-value-heading {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.about-value-text {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  line-height: 1.7;
+  font-weight: 300;
+  margin: 0;
+}
+
+.about-mission-block {
+  padding: 80px 0;
+}
+
+.about-mission-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+}
+
+.about-mission-image {
+  border: 1px solid #000000;
+}
+
+.about-mission-text {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.about-mission-heading {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 0;
+}
+
+.about-mission-paragraph {
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  line-height: 1.7;
+  font-weight: 300;
+  margin: 0;
+}
+
+@media (max-width: 1024px) {
+  .about-hero-grid,
+  .about-mission-grid {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .about-values-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .about-hero-heading {
+    font-size: 32px;
+  }
+}
