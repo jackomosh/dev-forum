@@ -45,9 +45,9 @@ func NewClient(dbPath string) (*Client, error) {
 	}
 
 	// Configure connection pool
-	db.SetMaxOpenConns(10) // Allow up to 10 concurrent connections
-	db.SetMaxIdleConns(2)  // Keep up to 2 idle connections open
-	db.SetConnMaxLifetime(0)
+	db.SetMaxOpenConns(10)                  // Allow up to 10 concurrent connections
+    db.SetMaxIdleConns(2)                   // Keep up to 2 idle connections open
+    db.SetConnMaxLifetime(0)
 
 	// Enable foreign keys
 	if _, err := db.Exec("PRAGMA foreign_keys = ON"); err != nil {

@@ -20,11 +20,11 @@ type PostListItem struct {
 
 type PostListViewData struct {
 	BaseViewData
-	Posts           []PostListItem
-	Categories      []domain.Category
-	Filter          domain.PostFilter
-	ActiveCat       string
-	ActiveFilter    string
+	Posts        []PostListItem
+	Categories   []domain.Category
+	Filter       domain.PostFilter
+	ActiveCat    string
+	ActiveFilter string
 	ActiveTimeframe string
 }
 

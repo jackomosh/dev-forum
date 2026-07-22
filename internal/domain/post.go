@@ -36,11 +36,6 @@ type Post struct {
 	UpdatedAt time.Time
 }
 
-// FormattedBody converts raw string Body into safe template.HTML for unescaped rendering.
-func (p Post) FormattedBody() template.HTML {
-	return template.HTML(p.Body)
-}
-
 type PostWithAuthor struct {
 	Post       Post
 	Author     PublicUser
@@ -101,3 +96,8 @@ const (
 	TimeframeWeekly  Timeframe = "weekly"
 	TimeframeMonthly Timeframe = "monthly"
 )
+
+
+func (p Post) FormattedBody() template.HTML {
+	return template.HTML(p.Body)
+}
