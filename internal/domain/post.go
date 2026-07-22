@@ -101,8 +101,3 @@ const (
 	TimeframeWeekly  Timeframe = "weekly"
 	TimeframeMonthly Timeframe = "monthly"
 )
-
-
-func (p Post) FormattedBody() template.HTML {
-	return template.HTML(p.Body)
-}
