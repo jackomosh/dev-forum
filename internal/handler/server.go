@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
+	// "html"
 	"io"
 	"log"
 	"net/http"
@@ -69,8 +70,8 @@ func NewForumHandler(repos repository.Repository, renderer *Renderer, opts Optio
 
 func (h *ForumHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/", h.Home)
-	mux.HandleFunc("/about", h.About)
 	mux.HandleFunc("/dashboard", h.Dashboard)
+	mux.HandleFunc("/about", h.About)
 	mux.HandleFunc("/posts", h.PostsRedirect)
 	mux.HandleFunc("/post/create", h.CreatePost)
 	mux.HandleFunc("/post/comment", h.CreateComment)
@@ -153,7 +154,7 @@ func (h *ForumHandler) About(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *ForumHandler) Dashboard(w http.ResponseWriter, r *http.Request) {
+ func (h *ForumHandler) Dashboard(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		return
