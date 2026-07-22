@@ -130,30 +130,30 @@ func (h *ForumHandler) Home(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
- 	h.renderer.Render(w, "index.html", StaticViewData{
- 		BaseViewData: BaseViewData{CurrentUser: user},
- 		Categories:   categories,
- 		FeaturedPost: featured,
- 		LatestPosts:  latest,
- 	})
- }
+	h.renderer.Render(w, "index.html", StaticViewData{
+		BaseViewData: BaseViewData{CurrentUser: user},
+		Categories:   categories,
+		FeaturedPost: featured,
+		LatestPosts:  latest,
+	})
+}
 
- func (h *ForumHandler) About(w http.ResponseWriter, r *http.Request) {
- 	if r.Method != http.MethodGet {
- 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
- 		return
- 	}
+func (h *ForumHandler) About(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
 
- 	user, err := h.currentUser(r)
- 	if err != nil {
- 		h.serverError(w, err)
- 		return
- 	}
+	user, err := h.currentUser(r)
+	if err != nil {
+		h.serverError(w, err)
+		return
+	}
 
- 	h.renderer.Render(w, "about.html", StaticViewData{
- 		BaseViewData: BaseViewData{CurrentUser: user},
- 	})
- }
+	h.renderer.Render(w, "about.html", StaticViewData{
+		BaseViewData: BaseViewData{CurrentUser: user},
+	})
+}
 
  func (h *ForumHandler) Dashboard(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
@@ -988,22 +988,4 @@ func parseInt64FormValue[T signedInteger](r *http.Request, key string) (T, error
 		return 0, fmt.Errorf("invalid %s", key)
 	}
 	return T(value), nil
-}
-
-// About renders the static about page.
-func (h *ForumHandler) About(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	user, err := h.currentUser(r)
-	if err != nil {
-		h.serverError(w, err)
-		return
-	}
-
-	h.renderer.Render(w, "about.html", StaticViewData{
-		BaseViewData: BaseViewData{CurrentUser: user},
-	})
 }

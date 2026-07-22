@@ -89,7 +89,7 @@
             <header class="expert-post-header">
               <div class="expert-author-info">
                 <div class="expert-author-avatar">
-                  <span>{{slice .Post.Author.Username 0 1 | html}}</span>
+                  <span>{{if .Post.Author.Username}}{{slice .Post.Author.Username 0 1 | html}}{{else}}U{{end}}</span>
                 </div>
                 <div class="expert-meta-block">
                   <span class="expert-author-username">@{{.Post.Author.Username}}</span>
@@ -109,8 +109,8 @@
                 <a href="/post/{{.Post.Post.ID}}">{{.Post.Post.Title}}</a>
               </h2>
               <div class="post-preview-body">
-              {{.Post.Post.FormattedBody}}
-            </div>
+                {{.Post.Post.FormattedBody}}
+              </div>
             </div>
 
             <div class="expert-post-footer">
@@ -166,7 +166,7 @@
                 {{if .Comments}}
                   {{range .Comments}}
                     <div class="timeline-comment-card">
-                      <div class="comment-card-avatar">{{slice .Author.Username 0 1 | html}}</div>
+                      <div class="comment-card-avatar">{{if .Author.Username}}{{slice .Author.Username 0 1 | html}}{{else}}U{{end}}</div>
                       <div class="comment-card-body">
                         <div class="comment-card-top">
                           <span class="comment-card-author">@{{.Author.Username}}</span>
