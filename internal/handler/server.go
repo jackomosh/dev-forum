@@ -70,7 +70,6 @@ func NewForumHandler(repos repository.Repository, renderer *Renderer, opts Optio
 
 func (h *ForumHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/", h.Home)
-	mux.HandleFunc("/about", h.About)
 	mux.HandleFunc("/dashboard", h.Dashboard)
 	mux.HandleFunc("/about", h.About)
 	mux.HandleFunc("/posts", h.PostsRedirect)
