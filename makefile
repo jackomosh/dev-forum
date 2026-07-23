@@ -1,5 +1,5 @@
 
-# FORUM PROJECT MAKEFILE - PART 1: Setup & Variables
+# FORUM PROJECT MAKEFILE - Setup & Variables
 # Variables
 APP_NAME := forum
 BINARY_NAME := forum
@@ -52,3 +52,99 @@ env: ## Show environment variables
 	@echo "  DOCKER_IMAGE: $(DOCKER_IMAGE)"
 	@echo "  DOCKER_TAG: $(DOCKER_TAG)"
 	@echo "  DOCKER_PORT: $(DOCKER_PORT)"
+
+# DEPENDENCIES
+.PHONY: deps
+deps: ## Download dependencies
+	@echo "$(YELLOW)Downloading dependencies...$(RESET)"
+	$(GOMOD) download
+	$(GOMOD) tidy
+	@echo "$(GREEN)Dependencies downloaded$(RESET)"
+
+# CODE QUALITY
+.PHONY: fmt
+fmt: ## Format code
+	@echo "$(YELLOW)Formatting code...$(RESET)"
+	$(GOFMT) ./...
+	@echo "$(GREEN)Code formatted$(RESET)"
+
+.PHONY: lint
+lint: ## Run linter (requires golangci-lint)
+	@echo "$(YELLOW)Running linter...$(RESET)"
+	@which golangci-lint > /dev/null 2>&1 || (echo "$(RED)golangci-lint not installed. Run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest$(RESET)" && exit 1)
+	golangci-lint run ./...
+	@echo "$(GREEN)Linting complete$(RESET)"
+
+# TESTING
+.PHONY: test
+test: ## Run tests with coverage
+	@echo "$(YELLOW)Running tests...$(RESET)"
+	$(GOTEST) $(GOTESTFLAGS) ./...
+	@echo "$(GREEN)Tests complete$(RESET)"
+
+# BUILD
+.PHONY: build
+build: deps ## Build the application
+	@echo "$(YELLOW)Building application...$(RESET)"
+	@mkdir -p $(BUILD_DIR)
+	$(GO) build $(GOFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME) $(CMD_DIR)
+	@echo "$(GREEN)Build complete: $(BUILD_DIR)/$(BINARY_NAME)$(RESET)"
+
+.PHONY: run
+run: ## Run the application locally
+	@echo "$(YELLOW)Running application...$(RESET)"
+	$(GO) run $(CMD_DIR)/main.go $(CMD_DIR)/app.go
+
+# RELEASE
+.PHONY: release
+release: clean deps test build ## Create a release build
+	@echo "$(GREEN)Release build complete$(RESET)"
+
+.PHONY: cross-build
+cross-build: ## Build for multiple platforms
+	@echo "$(YELLOW)Building for multiple platforms...$(RESET)"
+	@mkdir -p $(BUILD_DIR)/releases
+	GOOS=linux GOARCH=amd64 $(GO) build -o $(BUILD_DIR)/releases/$(BINARY_NAME)-linux-amd64 $(CMD_DIR)
+	GOOS=darwin GOARCH=amd64 $(GO) build -o $(BUILD_DIR)/releases/$(BINARY_NAME)-darwin-amd64 $(CMD_DIR)
+	GOOS=windows GOARCH=amd64 $(GO) build -o $(BUILD_DIR)/releases/$(BINARY_NAME)-windows-amd64.exe $(CMD_DIR)
+	@echo "$(GREEN)Cross-platform builds complete$(RESET)"
+	@ls -la $(BUILD_DIR)/releases/
+
+# CLEAN
+.PHONY: clean
+clean: ## Clean build artifacts and cache
+	@echo "$(YELLOW)Cleaning...$(RESET)"
+	rm -rf $(BUILD_DIR)
+	rm -f coverage.out
+	$(GO) clean -cache
+	@echo "$(GREEN)Cleaned$(RESET)"
+
+.PHONY: clean-db
+clean-db: ## Remove database file
+	@echo "$(YELLOW)Removing database...$(RESET)"
+	rm -f forum.db
+	@echo "$(GREEN)Database removed$(RESET)"
+
+.PHONY: reset
+reset: clean clean-db ## Reset everything
+	@echo "$(GREEN)Reset complete$(RESET)"
+
+# INSTALL TOOLS
+.PHONY: install-tools
+install-tools: ## Install development tools
+	@echo "$(YELLOW)Installing development tools...$(RESET)"
+	$(GO) install github.com/air-verse/air@latest
+	$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+	$(GO) install github.com/go-delve/delve/cmd/dlv@latest
+	@echo "$(GREEN)Development tools installed$(RESET)"
+
+# DEV (hot reload)
+.PHONY: dev
+dev: ## Run in development mode with hot reload (requires air)
+	@echo "$(YELLOW)Running in development mode...$(RESET)"
+	@which air > /dev/null 2>&1 || (echo "$(RED)air not installed. Run: make install-tools$(RESET)" && exit 1)
+	air
+
+# ALL
+.PHONY: all
+all: fmt lint test build ## Run all targets (fmt, lint, test, build)
