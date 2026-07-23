@@ -148,3 +148,62 @@ dev: ## Run in development mode with hot reload (requires air)
 # ALL
 .PHONY: all
 all: fmt lint test build ## Run all targets (fmt, lint, test, build)
+
+# FORUM PROJECT MAKEFILE - Docker Targets
+
+# DOCKER TARGETS
+
+.PHONY: docker-build
+docker-build: ## Build Docker image
+	@echo "$(YELLOW)Building Docker image...$(RESET)"
+	docker build -t $(DOCKER_IMAGE):$(DOCKER_TAG) .
+	@echo "$(GREEN)Docker image built: $(DOCKER_IMAGE):$(DOCKER_TAG)$(RESET)"
+
+.PHONY: docker-run
+docker-run: ## Run Docker container (does NOT rebuild)
+	@echo "$(YELLOW)Running Docker container...$(RESET)"
+	@docker rm -f $(DOCKER_CONTAINER) 2>/dev/null || true
+	docker run -d --name $(DOCKER_CONTAINER) -p 8089:$(DOCKER_PORT) $(DOCKER_IMAGE):$(DOCKER_TAG)
+	@echo "$(GREEN)Docker container running: $(DOCKER_CONTAINER)$(RESET)"
+	@echo "$(GREEN)Access at: http://localhost:8089$(RESET)"
+
+.PHONY: docker-rebuild
+docker-rebuild: docker-build docker-run ## Rebuild and run Docker container
+
+.PHONY: docker-stop
+docker-stop: ## Stop Docker container
+	@echo "$(YELLOW)Stopping Docker container...$(RESET)"
+	@docker stop $(DOCKER_CONTAINER) 2>/dev/null || echo "Container not running"
+	@docker rm $(DOCKER_CONTAINER) 2>/dev/null || echo "Container not found"
+	@echo "$(GREEN)Docker container stopped$(RESET)"
+
+.PHONY: docker-logs
+docker-logs: ## View Docker container logs
+	docker logs -f $(DOCKER_CONTAINER)
+
+.PHONY: docker-shell
+docker-shell: ## Shell into Docker container
+	docker exec -it $(DOCKER_CONTAINER) sh
+
+.PHONY: docker-clean
+docker-clean: docker-stop ## Remove Docker image
+	@echo "$(YELLOW)Removing Docker image...$(RESET)"
+	docker rmi $(DOCKER_IMAGE):$(DOCKER_TAG) 2>/dev/null || echo "Image not found"
+	@echo "$(GREEN)Docker image removed$(RESET)"
+
+.PHONY: docker-ps
+docker-ps: ## Show running containers
+	docker ps --filter "name=$(DOCKER_CONTAINER)"
+
+# DOCKER-COMPOSE TARGETS (optional)
+.PHONY: compose-up
+compose-up: ## Start with docker-compose
+	docker-compose up -d
+
+.PHONY: compose-down
+compose-down: ## Stop docker-compose
+	docker-compose down
+
+.PHONY: compose-logs
+compose-logs: ## View docker-compose logs
+	docker-compose logs -f
