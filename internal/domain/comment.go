@@ -1,8 +1,8 @@
 package domain
 
 import (
-	"time"
 	"html/template"
+	"time"
 )
 
 type CommentID int64

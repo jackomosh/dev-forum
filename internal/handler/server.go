@@ -87,6 +87,8 @@ func (h *ForumHandler) RegisterRoutes(mux *http.ServeMux) {
 }
 
 func (h *ForumHandler) Home(w http.ResponseWriter, r *http.Request) {
+	// h.serverError(w, fmt.Errorf("this is a test"))
+	// return
 	if r.URL.Path != "/" {
 		http.NotFound(w, r)
 		return
