@@ -70,6 +70,12 @@ func (r *SessionRepository) GetByID(ctx context.Context, id domain.SessionID) (*
 
 	session.ExpiresAt = time.Unix(expiresAt, 0)
 	session.CreatedAt = time.Unix(createdAt, 0)
+
+	if session.IsExpired() {
+		_ = r.Delete(ctx, session.ID)
+		return nil, nil
+	}
+
 	return &session, nil
 }
 

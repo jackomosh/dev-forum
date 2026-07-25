@@ -92,7 +92,7 @@ func (h *ForumHandler) Home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.currentUser(r)
+	user, err := h.currentUser(w, r)
 	if err != nil {
 		h.serverError(w, err)
 		return
@@ -129,7 +129,7 @@ func (h *ForumHandler) Home(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.renderer.Render(w, "index.html", StaticViewData{
-		BaseViewData: BaseViewData{CurrentUser: user},
+		BaseViewData: BaseViewData{CurrentUser: toPublicUserPtr(user)},
 		Categories:   categories,
 		FeaturedPost: featured,
 		LatestPosts:  latest,
@@ -142,14 +142,14 @@ func (h *ForumHandler) About(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.currentUser(r)
+	user, err := h.currentUser(w, r)
 	if err != nil {
 		h.serverError(w, err)
 		return
 	}
 
 	h.renderer.Render(w, "about.html", StaticViewData{
-		BaseViewData: BaseViewData{CurrentUser: user},
+		BaseViewData: BaseViewData{CurrentUser: toPublicUserPtr(user)},
 	})
 }
 
@@ -160,7 +160,7 @@ func (h *ForumHandler) Dashboard(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := r.Context()
-	user, err := h.currentUser(r)
+	user, err := h.currentUser(w, r)
 	if err != nil {
 		h.serverError(w, err)
 		return
@@ -257,7 +257,7 @@ func (h *ForumHandler) Dashboard(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.renderer.Render(w, "dashboard.html", PostListViewData{
-		BaseViewData:    BaseViewData{CurrentUser: user},
+		BaseViewData:    BaseViewData{CurrentUser: toPublicUserPtr(user)},
 		Posts:           items,
 		Categories:      categories,
 		Filter:          filter,
@@ -290,7 +290,7 @@ func (h *ForumHandler) CreatePost(w http.ResponseWriter, r *http.Request) {
 		}
 
 		h.renderer.Render(w, "post_create.html", CreatePostViewData{
-			BaseViewData: BaseViewData{CurrentUser: user},
+			BaseViewData: BaseViewData{CurrentUser: toPublicUserPtr(user)},
 			Categories:   categories,
 		})
 	case http.MethodPost:
@@ -381,7 +381,6 @@ func (h *ForumHandler) CreateComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Redirect to the specified page, defaulting to dashboard
 	redirectTo := r.FormValue("redirect_to")
 	if redirectTo == "" {
 		redirectTo = "/dashboard"
@@ -390,7 +389,7 @@ func (h *ForumHandler) CreateComment(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ForumHandler) Contact(w http.ResponseWriter, r *http.Request) {
-	user, err := h.currentUser(r)
+	user, err := h.currentUser(w, r)
 	if err != nil {
 		h.serverError(w, err)
 		return
@@ -417,7 +416,7 @@ func (h *ForumHandler) Contact(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.renderer.Render(w, "contact.html", StaticViewData{
-		BaseViewData: BaseViewData{CurrentUser: user},
+		BaseViewData: BaseViewData{CurrentUser: toPublicUserPtr(user)},
 	})
 }
 
@@ -482,7 +481,6 @@ func (h *ForumHandler) ForgotPassword(w http.ResponseWriter, r *http.Request) {
 	h.renderAuth(w, r, "forgot-password.html", "")
 }
 
-// VotePost handles like/dislike votes on posts.
 func (h *ForumHandler) VotePost(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
@@ -548,7 +546,6 @@ func (h *ForumHandler) VotePost(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, referer, http.StatusSeeOther)
 }
 
-// PostDetail displays a single post with its comments.
 func (h *ForumHandler) PostDetail(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
@@ -568,7 +565,7 @@ func (h *ForumHandler) PostDetail(w http.ResponseWriter, r *http.Request) {
 	postID := domain.PostID(id)
 
 	ctx := r.Context()
-	user, err := h.currentUser(r)
+	user, err := h.currentUser(w, r)
 	if err != nil {
 		h.serverError(w, err)
 		return
@@ -597,7 +594,6 @@ func (h *ForumHandler) PostDetail(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Pass user's vote status for each comment if logged in
 	if user != nil {
 		for i := range comments {
 			vote, err := h.repos.Votes().GetVote(ctx, user.ID, domain.VoteTargetComment, int64(comments[i].Comment.ID))
@@ -608,7 +604,7 @@ func (h *ForumHandler) PostDetail(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := PostDetailViewData{
-		BaseViewData: BaseViewData{CurrentUser: user},
+		BaseViewData: BaseViewData{CurrentUser: toPublicUserPtr(user)},
 		Post:         *post,
 		Comments:     comments,
 	}
@@ -616,7 +612,6 @@ func (h *ForumHandler) PostDetail(w http.ResponseWriter, r *http.Request) {
 	h.renderer.Render(w, "posts_detail.html", data)
 }
 
-// CommentVote handles like/dislike votes on comments.
 func (h *ForumHandler) CommentVote(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
@@ -785,7 +780,7 @@ func (h *ForumHandler) renderAuth(w http.ResponseWriter, r *http.Request, tmpl, 
 }
 
 func (h *ForumHandler) renderAuthWithForm(w http.ResponseWriter, r *http.Request, tmpl, message string, form RegisterRequest) {
-	user, err := h.currentUser(r)
+	user, err := h.currentUser(w, r)
 	if err != nil {
 		h.serverError(w, err)
 		return
@@ -793,7 +788,7 @@ func (h *ForumHandler) renderAuthWithForm(w http.ResponseWriter, r *http.Request
 
 	h.renderer.Render(w, tmpl, AuthViewData{
 		BaseViewData: BaseViewData{
-			CurrentUser: user,
+			CurrentUser: toPublicUserPtr(user),
 			Error:       message,
 		},
 		Form: form,
@@ -807,7 +802,6 @@ func (h *ForumHandler) parsePostForm(r *http.Request) (PostForm, error) {
 		return PostForm{}, fmt.Errorf("title and body are required")
 	}
 
-	// Preserve formatted HTML from the frontend editor directly
 	sanitizedBody := rawBody
 
 	var categoryIDs []domain.CategoryID
@@ -836,8 +830,8 @@ func (h *ForumHandler) parsePostForm(r *http.Request) (PostForm, error) {
 	}, nil
 }
 
-func (h *ForumHandler) requireCurrentUser(w http.ResponseWriter, r *http.Request) (*domain.PublicUser, bool) {
-	user, err := h.currentUser(r)
+func (h *ForumHandler) requireCurrentUser(w http.ResponseWriter, r *http.Request) (*domain.User, bool) {
+	user, err := h.currentUser(w, r)
 	if err != nil {
 		h.serverError(w, err)
 		return nil, false
@@ -849,37 +843,32 @@ func (h *ForumHandler) requireCurrentUser(w http.ResponseWriter, r *http.Request
 	return user, true
 }
 
-func (h *ForumHandler) currentUser(r *http.Request) (*domain.PublicUser, error) {
+func (h *ForumHandler) currentUser(w http.ResponseWriter, r *http.Request) (*domain.User, error) {
 	cookie, err := r.Cookie(h.sessionCookieName)
-	if err == http.ErrNoCookie {
+	if err != nil || cookie.Value == "" {
 		return nil, nil
-	}
-	if err != nil {
-		return nil, err
 	}
 
 	session, err := h.repos.Sessions().GetByID(r.Context(), domain.SessionID(cookie.Value))
-	if err != nil {
-		return nil, err
-	}
-	if session == nil {
+	if err != nil || session == nil {
+		http.SetCookie(w, h.expiredSessionCookie())
 		return nil, nil
 	}
-	if time.Now().After(session.ExpiresAt) {
+
+	if session.IsExpired() {
 		_ = h.repos.Sessions().Delete(r.Context(), session.ID)
+		http.SetCookie(w, h.expiredSessionCookie())
 		return nil, nil
 	}
 
 	user, err := h.repos.Users().GetByID(r.Context(), session.UserID)
-	if err != nil {
-		return nil, err
-	}
-	if user == nil {
+	if err != nil || user == nil {
+		_ = h.repos.Sessions().Delete(r.Context(), session.ID)
+		http.SetCookie(w, h.expiredSessionCookie())
 		return nil, nil
 	}
 
-	publicUser := publicUserFromDomain(*user)
-	return &publicUser, nil
+	return user, nil
 }
 
 func (h *ForumHandler) lookupUser(r *http.Request, identifier string) (*domain.User, error) {
@@ -890,34 +879,40 @@ func (h *ForumHandler) lookupUser(r *http.Request, identifier string) (*domain.U
 }
 
 func (h *ForumHandler) startSession(w http.ResponseWriter, r *http.Request, userID domain.UserID) error {
+	if err := h.repos.Sessions().DeleteByUserID(r.Context(), userID); err != nil {
+		return fmt.Errorf("revoke existing sessions: %w", err)
+	}
+
 	token, err := randomToken(32)
 	if err != nil {
 		return err
 	}
 
-	now := time.Now()
 	session := &domain.Session{
 		ID:        domain.SessionID(token),
 		UserID:    userID,
-		ExpiresAt: now.Add(h.sessionDuration),
-		CreatedAt: now,
+		ExpiresAt: time.Now().Add(h.sessionDuration),
+		CreatedAt: time.Now(),
 	}
 
 	if err := h.repos.Sessions().Create(r.Context(), session); err != nil {
-		return err
+		return fmt.Errorf("create session: %w", err)
 	}
 
-	http.SetCookie(w, &http.Cookie{
+	http.SetCookie(w, h.sessionCookie(session.ID, session.ExpiresAt))
+	return nil
+}
+
+func (h *ForumHandler) sessionCookie(id domain.SessionID, expiresAt time.Time) *http.Cookie {
+	return &http.Cookie{
 		Name:     h.sessionCookieName,
-		Value:    string(session.ID),
+		Value:    string(id),
 		Path:     "/",
-		Expires:  session.ExpiresAt,
-		MaxAge:   int(h.sessionDuration.Seconds()),
+		Expires:  expiresAt,
 		HttpOnly: true,
 		Secure:   h.sessionSecure,
 		SameSite: h.sessionSameSite,
-	})
-	return nil
+	}
 }
 
 func (h *ForumHandler) expiredSessionCookie() *http.Cookie {
@@ -953,6 +948,14 @@ func publicUserFromDomain(user domain.User) domain.PublicUser {
 		Role:      user.Role,
 		CreatedAt: user.CreatedAt,
 	}
+}
+
+func toPublicUserPtr(user *domain.User) *domain.PublicUser {
+	if user == nil {
+		return nil
+	}
+	pub := publicUserFromDomain(*user)
+	return &pub
 }
 
 func categoryIDBySlug(categories []domain.Category, slug string) (domain.CategoryID, bool) {
