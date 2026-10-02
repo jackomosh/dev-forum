@@ -47,14 +47,19 @@ type SecurityConfig struct {
 }
 
 func Default() Config {
-	port := getenv("FORUM_PORT", "8089")
+	// 1. Check for standard Vercel injection, fallback to your custom FORUM_PORT, then 8089
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = getenv("FORUM_PORT", "8089")
+	}
+
 	databasePath := getenv("FORUM_DB_PATH", "forum.db")
 
 	return Config{
 		App: AppConfig{
 			Name:        "Dev Forum",
 			Environment: "development",
-			BaseURL:     "http://localhost:8089",
+			BaseURL:     "http://localhost:" + port,
 		},
 		Server: ServerConfig{
 			Host:            "",

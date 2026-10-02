@@ -29,6 +29,5 @@ COPY --from=builder /app/web ./web
 # Copy schema to image 
 COPY --from=builder /app/schema.sql ./schema.sql
 
-EXPOSE 8089
-
+# CMD runs inside /root/, where app, web, and schema.sql live together perfectly
 CMD ["./app"]
